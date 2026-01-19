@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const path = require('path');
 const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
@@ -89,7 +90,34 @@ setInterval(() => {
 }, 5000)
 
 // Serve frontend files
-app.use(express.static('public'));
+if (require.main === module && process.isSEA) {
+    // When running as SEA, serve assets from the bundle
+    const sea = require('node:sea');
+
+    app.get('/', (req, res) => {
+        res.type('html').send(sea.getAsset('public/index.html'));
+    });
+
+    app.get('/obs.html', (req, res) => {
+        res.type('html').send(sea.getAsset('public/obs.html'));
+    });
+
+    app.get('/app.js', (req, res) => {
+        res.type('js').send(sea.getAsset('public/app.js'));
+    });
+
+    app.get('/connection.js', (req, res) => {
+        res.type('js').send(sea.getAsset('public/connection.js'));
+    });
+
+    app.get('/style.css', (req, res) => {
+        res.type('css').send(sea.getAsset('public/style.css'));
+    });
+} else {
+    // When running normally, serve from file system
+    const publicPath = path.join(__dirname, 'public');
+    app.use(express.static(publicPath));
+}
 
 // Start http listener
 const port = process.env.PORT || 8081;

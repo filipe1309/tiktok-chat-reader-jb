@@ -1,0 +1,16 @@
+{
+  "name": "tiktok-chat-reader",
+  "version": "1.0.0",
+  "bin": "dist/server-bundled.js",
+  "pkg": {
+    "assets": [
+      "dist/public/**/*"
+    ],
+    "targets": [
+      "node18-win-x64",
+      "node18-macos-x64",
+      "node18-linux-x64"
+    ],
+    "outputPath": "dist"
+  }
+}
