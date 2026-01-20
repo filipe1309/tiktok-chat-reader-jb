@@ -39,9 +39,12 @@ let serverCode = fs.readFileSync('server-pkg.js', 'utf8');
 const publicFiles = {
   'index.html': fs.readFileSync('public/index.html', 'utf8'),
   'obs.html': fs.readFileSync('public/obs.html', 'utf8'),
+  'poll.html': fs.readFileSync('public/poll.html', 'utf8'),
   'app.js': fs.readFileSync('public/app.js', 'utf8'),
   'connection.js': fs.readFileSync('public/connection.js', 'utf8'),
-  'style.css': fs.readFileSync('public/style.css', 'utf8')
+  'poll.js': fs.readFileSync('public/poll.js', 'utf8'),
+  'style.css': fs.readFileSync('public/style.css', 'utf8'),
+  'poll.css': fs.readFileSync('public/poll.css', 'utf8')
 };
 
 // Create embedded files object as a string
@@ -66,6 +69,10 @@ if (process.pkg) {
     res.type('html').send(EMBEDDED_FILES['obs.html']);
   });
 
+  app.get('/poll.html', (req, res) => {
+    res.type('html').send(EMBEDDED_FILES['poll.html']);
+  });
+
   app.get('/app.js', (req, res) => {
     res.type('js').send(EMBEDDED_FILES['app.js']);
   });
@@ -74,8 +81,16 @@ if (process.pkg) {
     res.type('js').send(EMBEDDED_FILES['connection.js']);
   });
 
+  app.get('/poll.js', (req, res) => {
+    res.type('js').send(EMBEDDED_FILES['poll.js']);
+  });
+
   app.get('/style.css', (req, res) => {
     res.type('css').send(EMBEDDED_FILES['style.css']);
+  });
+
+  app.get('/poll.css', (req, res) => {
+    res.type('css').send(EMBEDDED_FILES['poll.css']);
   });
 } else {
   // When running normally (development), serve from file system
