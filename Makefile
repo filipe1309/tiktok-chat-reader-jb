@@ -1,4 +1,9 @@
-.PHONY: help install build clean dev dev-watch lint lint-fix test start build-exe all check-deps
+.PHONY: help check-node \
+        backend-install backend-dev backend-dev-watch backend-build backend-start \
+        backend-lint backend-lint-fix backend-clean backend-clean-all backend-watch \
+        backend-build-exe backend-verify backend-upgrade backend-outdated \
+        frontend-install frontend-dev frontend-build frontend-lint frontend-clean \
+        install dev build start lint clean clean-all info
 
 # Variables
 NODE := node
@@ -11,7 +16,8 @@ PKG := npx pkg
 # Directories
 SRC_DIR := src
 DIST_DIR := dist
-PUBLIC_DIR := public
+PUBLIC_DIR := public-react
+FRONTEND_DIR := frontend
 NODE_MODULES := node_modules
 
 # Colors for output (using printf-compatible format)
@@ -19,6 +25,7 @@ BLUE := \033[0;34m
 GREEN := \033[0;32m
 YELLOW := \033[0;33m
 RED := \033[0;31m
+CYAN := \033[0;36m
 NC := \033[0m# No Color
 
 # Default target
@@ -26,23 +33,47 @@ NC := \033[0m# No Color
 
 ## help: Display this help message
 help:
-	@printf "$(BLUE)TikTok Chat Reader - Available Commands$(NC)\n"
+	@printf "$(BLUE)╔══════════════════════════════════════════════════════════════╗$(NC)\n"
+	@printf "$(BLUE)║         TikTok Chat Reader - Available Commands              ║$(NC)\n"
+	@printf "$(BLUE)╚══════════════════════════════════════════════════════════════╝$(NC)\n"
 	@printf "\n"
-	@grep -E '^## ' $(MAKEFILE_LIST) | sed 's/## /  /' | awk -F': ' '{printf "$(GREEN)%-15s$(NC) %s\n", $$1, $$2}'
+	@printf "$(CYAN)▸ Combined Commands (Backend + Frontend)$(NC)\n"
+	@printf "  $(GREEN)install$(NC)          Install all dependencies\n"
+	@printf "  $(GREEN)dev$(NC)              Start both dev servers\n"
+	@printf "  $(GREEN)build$(NC)            Build both projects\n"
+	@printf "  $(GREEN)start$(NC)            Build and start production\n"
+	@printf "  $(GREEN)lint$(NC)             Run linters on both projects\n"
+	@printf "  $(GREEN)clean$(NC)            Clean all build artifacts\n"
+	@printf "  $(GREEN)clean-all$(NC)        Clean artifacts + node_modules\n"
+	@printf "  $(GREEN)info$(NC)             Display project information\n"
+	@printf "\n"
+	@printf "$(CYAN)▸ Backend Commands (Node.js + TypeScript)$(NC)\n"
+	@printf "  $(GREEN)backend-install$(NC)  Install backend dependencies\n"
+	@printf "  $(GREEN)backend-dev$(NC)      Start backend dev server (:8081)\n"
+	@printf "  $(GREEN)backend-dev-watch$(NC) Start with auto-reload\n"
+	@printf "  $(GREEN)backend-build$(NC)    Compile TypeScript\n"
+	@printf "  $(GREEN)backend-start$(NC)    Start production server\n"
+	@printf "  $(GREEN)backend-lint$(NC)     Run ESLint\n"
+	@printf "  $(GREEN)backend-lint-fix$(NC) Run ESLint with auto-fix\n"
+	@printf "  $(GREEN)backend-watch$(NC)    Watch for changes\n"
+	@printf "  $(GREEN)backend-clean$(NC)    Remove build artifacts\n"
+	@printf "  $(GREEN)backend-clean-all$(NC) Remove artifacts + deps\n"
+	@printf "  $(GREEN)backend-build-exe$(NC) Build executables\n"
+	@printf "  $(GREEN)backend-verify$(NC)   Run linter + type check\n"
+	@printf "  $(GREEN)backend-upgrade$(NC)  Update dependencies\n"
+	@printf "  $(GREEN)backend-outdated$(NC) Check outdated packages\n"
+	@printf "\n"
+	@printf "$(CYAN)▸ Frontend Commands (React + TypeScript + Tailwind)$(NC)\n"
+	@printf "  $(GREEN)frontend-install$(NC) Install frontend dependencies\n"
+	@printf "  $(GREEN)frontend-dev$(NC)     Start frontend dev server (:3000)\n"
+	@printf "  $(GREEN)frontend-build$(NC)   Build for production\n"
+	@printf "  $(GREEN)frontend-lint$(NC)    Run ESLint\n"
+	@printf "  $(GREEN)frontend-clean$(NC)   Remove build artifacts\n"
 	@printf "\n"
 
-## install: Install project dependencies
-install: check-node
-	@printf "$(BLUE)📦 Installing dependencies...$(NC)\n"
-	@$(NPM) install
-	@printf "$(GREEN)✓ Dependencies installed successfully$(NC)\n"
-
-## check-deps: Check if dependencies are installed
-check-deps:
-	@if [ ! -d "$(NODE_MODULES)" ]; then \
-		printf "$(YELLOW)⚠️  Dependencies not found. Running 'make install'...$(NC)\n"; \
-		$(MAKE) install; \
-	fi
+# =============================================================================
+# Utility Commands
+# =============================================================================
 
 ## check-node: Verify Node.js version
 check-node:
@@ -55,85 +86,184 @@ check-node:
 		printf "$(GREEN)✓ Node.js version OK ($$($(NODE) --version))$(NC)\n"; \
 	fi
 
-## clean: Remove build artifacts
-clean:
-	@printf "$(BLUE)🧹 Cleaning build artifacts...$(NC)\n"
-	@rm -rf $(DIST_DIR)
-	@printf "$(GREEN)✓ Clean complete$(NC)\n"
+check-backend-deps:
+	@if [ ! -d "$(NODE_MODULES)" ]; then \
+		printf "$(YELLOW)⚠️  Backend dependencies not found. Running 'make backend-install'...$(NC)\n"; \
+		$(MAKE) backend-install; \
+	fi
 
-## clean-all: Remove build artifacts and dependencies
-clean-all: clean
-	@printf "$(BLUE)🧹 Removing node_modules...$(NC)\n"
-	@rm -rf $(NODE_MODULES)
+check-frontend-deps:
+	@if [ ! -d "$(FRONTEND_DIR)/$(NODE_MODULES)" ]; then \
+		printf "$(YELLOW)⚠️  Frontend dependencies not found. Running 'make frontend-install'...$(NC)\n"; \
+		$(MAKE) frontend-install; \
+	fi
+
+# =============================================================================
+# Combined Commands (Backend + Frontend)
+# =============================================================================
+
+## install: Install all dependencies (backend + frontend)
+install: backend-install frontend-install
+	@printf "$(GREEN)✓ All dependencies installed$(NC)\n"
+
+## dev: Start both backend and frontend dev servers
+dev:
+	@printf "$(BLUE)🚀 Starting backend and frontend servers...$(NC)\n"
+	@printf "$(YELLOW)  Backend:  http://localhost:8081$(NC)\n"
+	@printf "$(YELLOW)  Frontend: http://localhost:3000$(NC)\n"
+	@printf "\n"
+	@$(NPM) run dev & cd $(FRONTEND_DIR) && $(NPM) run dev
+
+## build: Build both backend and frontend
+build: backend-build frontend-build
+	@printf "$(GREEN)✓ Full build complete$(NC)\n"
+
+## start: Build and start production
+start: build backend-start
+
+## lint: Run linters on both projects
+lint: backend-lint frontend-lint
+	@printf "$(GREEN)✓ All linting complete$(NC)\n"
+
+## clean: Clean all build artifacts
+clean: backend-clean frontend-clean
+	@printf "$(GREEN)✓ All clean complete$(NC)\n"
+
+## clean-all: Clean artifacts and all node_modules
+clean-all: backend-clean-all frontend-clean
+	@printf "$(BLUE)🧹 Removing frontend node_modules...$(NC)\n"
+	@rm -rf $(FRONTEND_DIR)/$(NODE_MODULES)
 	@printf "$(GREEN)✓ Full clean complete$(NC)\n"
 
-## build: Compile TypeScript to JavaScript
-build: check-deps clean
-	@printf "$(BLUE)📝 Compiling TypeScript...$(NC)\n"
-	@$(NPM) run build
-	@printf "$(GREEN)✓ Build complete$(NC)\n"
+## info: Display project information
+info:
+	@printf "$(BLUE)╔══════════════════════════════════════════════════════════════╗$(NC)\n"
+	@printf "$(BLUE)║                   Project Information                        ║$(NC)\n"
+	@printf "$(BLUE)╚══════════════════════════════════════════════════════════════╝$(NC)\n"
+	@printf "\n"
+	@printf "$(CYAN)Backend:$(NC)\n"
+	@printf "  Name:    %s\n" "$$($(NODE) -p "require('./package.json').name")"
+	@printf "  Version: %s\n" "$$($(NODE) -p "require('./package.json').version")"
+	@printf "\n"
+	@printf "$(CYAN)Frontend:$(NC)\n"
+	@printf "  Name:    %s\n" "$$($(NODE) -p "require('./frontend/package.json').name")"
+	@printf "  Version: %s\n" "$$($(NODE) -p "require('./frontend/package.json').version")"
+	@printf "\n"
+	@printf "$(CYAN)Environment:$(NC)\n"
+	@printf "  Node:    %s\n" "$$($(NODE) --version)"
+	@printf "  NPM:     %s\n" "$$($(NPM) --version)"
 
-## dev: Run development server
-dev: check-deps
-	@printf "$(BLUE)🚀 Starting development server...$(NC)\n"
+# =============================================================================
+# Backend Commands (Node.js + TypeScript)
+# =============================================================================
+
+## backend-install: Install backend dependencies
+backend-install: check-node
+	@printf "$(BLUE)📦 Installing backend dependencies...$(NC)\n"
+	@$(NPM) install
+	@printf "$(GREEN)✓ Backend dependencies installed$(NC)\n"
+
+## backend-dev: Start backend dev server (port 8081)
+backend-dev: check-backend-deps
+	@printf "$(BLUE)🚀 Starting backend dev server...$(NC)\n"
 	@$(NPM) run dev
 
-## dev-watch: Run development server with auto-reload
-dev-watch: check-deps
-	@printf "$(BLUE)🚀 Starting development server with auto-reload...$(NC)\n"
+## backend-dev-watch: Start backend dev server with auto-reload
+backend-dev-watch: check-backend-deps
+	@printf "$(BLUE)🚀 Starting backend dev server with auto-reload...$(NC)\n"
 	@$(NPM) run dev:watch
 
-## start: Start production server
-start: build
-	@printf "$(BLUE)🚀 Starting production server...$(NC)\n"
+## backend-build: Compile TypeScript to JavaScript
+backend-build: check-backend-deps frontend-build
+	@printf "$(BLUE)📝 Compiling backend TypeScript...$(NC)\n"
+	@rm -rf $(DIST_DIR)
+	@$(NPM) run build
+	@printf "$(GREEN)✓ Backend build complete$(NC)\n"
+
+## backend-start: Start production server
+backend-start:
+	@printf "$(BLUE)🚀 Starting backend production server...$(NC)\n"
 	@$(NPM) run start
 
-## lint: Run ESLint
-lint: check-deps
-	@printf "$(BLUE)🔍 Running linter...$(NC)\n"
+## backend-lint: Run ESLint on backend
+backend-lint: check-backend-deps
+	@printf "$(BLUE)🔍 Running backend linter...$(NC)\n"
 	@$(NPM) run lint
 
-## lint-fix: Run ESLint with auto-fix
-lint-fix: check-deps
-	@printf "$(BLUE)🔧 Running linter with auto-fix...$(NC)\n"
+## backend-lint-fix: Run ESLint with auto-fix on backend
+backend-lint-fix: check-backend-deps
+	@printf "$(BLUE)🔧 Running backend linter with auto-fix...$(NC)\n"
 	@$(NPM) run lint:fix
-	@printf "$(GREEN)✓ Lint fixes applied$(NC)\n"
+	@printf "$(GREEN)✓ Backend lint fixes applied$(NC)\n"
 
-## build-exe: Build cross-platform executables
-build-exe: check-deps
+## backend-watch: Watch for file changes and rebuild
+backend-watch: check-backend-deps
+	@printf "$(BLUE)👀 Watching backend for changes...$(NC)\n"
+	@$(TSC) --watch
+
+## backend-clean: Remove backend build artifacts
+backend-clean:
+	@printf "$(BLUE)🧹 Cleaning backend build artifacts...$(NC)\n"
+	@rm -rf $(DIST_DIR)
+	@printf "$(GREEN)✓ Backend clean complete$(NC)\n"
+
+## backend-clean-all: Remove backend build artifacts and dependencies
+backend-clean-all: backend-clean
+	@printf "$(BLUE)🧹 Removing backend node_modules...$(NC)\n"
+	@rm -rf $(NODE_MODULES)
+	@printf "$(GREEN)✓ Backend full clean complete$(NC)\n"
+
+## backend-build-exe: Build cross-platform executables
+backend-build-exe: check-backend-deps frontend-build
 	@printf "$(BLUE)🔨 Building executables...$(NC)\n"
 	@chmod +x build-exe-pkg-ts.sh
 	@./build-exe-pkg-ts.sh
 	@printf "$(GREEN)✓ Executables built successfully$(NC)\n"
 
-## watch: Watch for file changes and rebuild
-watch: check-deps
-	@printf "$(BLUE)👀 Watching for changes...$(NC)\n"
-	@$(TSC) --watch
+## backend-verify: Run linter and type check
+backend-verify: backend-lint
+	@printf "$(GREEN)✓ Backend verification complete$(NC)\n"
 
-## verify: Run linter and type check
-verify: lint
-	@printf "$(BLUE)✓ Verification complete$(NC)\n"
-
-## all: Clean, install, build, and verify
-all: clean-all install build verify
-	@printf "$(GREEN)✓ All tasks complete$(NC)\n"
-
-## upgrade: Update dependencies
-upgrade:
-	@printf "$(BLUE)📦 Updating dependencies...$(NC)\n"
+## backend-upgrade: Update backend dependencies
+backend-upgrade:
+	@printf "$(BLUE)📦 Updating backend dependencies...$(NC)\n"
 	@$(NPM) update
-	@printf "$(GREEN)✓ Dependencies updated$(NC)\n"
+	@printf "$(GREEN)✓ Backend dependencies updated$(NC)\n"
 
-## outdated: Check for outdated packages
-outdated:
-	@printf "$(BLUE)📦 Checking for outdated packages...$(NC)\n"
-	@$(NPM) outdated
+## backend-outdated: Check for outdated backend packages
+backend-outdated:
+	@printf "$(BLUE)📦 Checking for outdated backend packages...$(NC)\n"
+	@$(NPM) outdated || true
 
-## info: Display project information
-info:
-	@printf "$(BLUE)Project Information:$(NC)\n"
-	@printf "  Name: %s\n" "$$($(NODE) -p "require('./package.json').name")"
-	@printf "  Version: %s\n" "$$($(NODE) -p "require('./package.json').version")"
-	@printf "  Node: %s\n" "$$($(NODE) --version)"
-	@printf "  NPM: %s\n" "$$($(NPM) --version)"
+# =============================================================================
+# Frontend Commands (React + TypeScript + Tailwind)
+# =============================================================================
+
+## frontend-install: Install frontend dependencies
+frontend-install: check-node
+	@printf "$(BLUE)📦 Installing frontend dependencies...$(NC)\n"
+	@cd $(FRONTEND_DIR) && $(NPM) install
+	@printf "$(GREEN)✓ Frontend dependencies installed$(NC)\n"
+
+## frontend-dev: Start frontend dev server (port 3000)
+frontend-dev: check-frontend-deps
+	@printf "$(BLUE)🚀 Starting frontend dev server...$(NC)\n"
+	@cd $(FRONTEND_DIR) && $(NPM) run dev
+
+## frontend-build: Build frontend for production
+frontend-build: check-frontend-deps
+	@printf "$(BLUE)📝 Building frontend...$(NC)\n"
+	@cd $(FRONTEND_DIR) && $(NPM) run build
+	@printf "$(GREEN)✓ Frontend build complete$(NC)\n"
+
+## frontend-lint: Run frontend linter
+frontend-lint: check-frontend-deps
+	@printf "$(BLUE)🔍 Running frontend linter...$(NC)\n"
+	@cd $(FRONTEND_DIR) && $(NPM) run lint
+
+## frontend-clean: Remove frontend build artifacts
+frontend-clean:
+	@printf "$(BLUE)🧹 Cleaning frontend build...$(NC)\n"
+	@rm -rf $(FRONTEND_DIR)/dist
+	@rm -rf public-react
+	@printf "$(GREEN)✓ Frontend clean complete$(NC)\n"

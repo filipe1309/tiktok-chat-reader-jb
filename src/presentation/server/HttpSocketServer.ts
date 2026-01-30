@@ -1,10 +1,26 @@
 import path from 'path';
-import express, { Application, Request, Response } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import { createServer, Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { SocketHandler } from '../handlers';
 import { RateLimiterService, StatisticsService } from '../../application/services';
 import { SocketEventType } from '../../domain/enums';
+
+// Check if running as a packaged executable
+const isPkg = !!(process as NodeJS.Process & { pkg?: unknown }).pkg;
+
+// Type declaration for embedded files (injected during pkg build)
+interface EmbeddedFile {
+  content: string;
+  binary: boolean;
+}
+
+// Use globalThis to access EMBEDDED_FILES to prevent esbuild from optimizing away the check
+// EMBEDDED_FILES is injected at the top of the bundle during the build process
+function getEmbeddedFiles(): Record<string, EmbeddedFile> | undefined {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (globalThis as any).EMBEDDED_FILES;
+}
 
 /**
  * Server Configuration
@@ -21,7 +37,7 @@ export interface ServerConfig {
 const DEFAULT_CONFIG: ServerConfig = {
   port: 8081,
   enableRateLimit: false,
-  staticFilesPath: path.join(__dirname, '../../../public'),
+  staticFilesPath: path.join(__dirname, '../../../public-react'),
   corsOrigin: '*',
   statisticsIntervalMs: 5000,
 };
@@ -110,11 +126,70 @@ export class HttpSocketServer {
   }
 
   /**
+   * Get MIME type for a file path
+   */
+  private getMimeType(filePath: string): string {
+    const ext = filePath.split('.').pop()?.toLowerCase() || '';
+    const mimeTypes: Record<string, string> = {
+      'html': 'text/html',
+      'js': 'application/javascript',
+      'css': 'text/css',
+      'json': 'application/json',
+      'png': 'image/png',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'gif': 'image/gif',
+      'svg': 'image/svg+xml',
+      'ico': 'image/x-icon',
+      'woff': 'font/woff',
+      'woff2': 'font/woff2',
+      'ttf': 'font/ttf',
+      'eot': 'application/vnd.ms-fontobject'
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
+  }
+
+  /**
    * Set up Express middleware
    */
   private setupMiddleware(): void {
-    // Serve static files
-    this.app.use(express.static(this.config.staticFilesPath));
+    const embeddedFiles = getEmbeddedFiles();
+    
+    if (isPkg && embeddedFiles) {
+      console.info('Running in packaged mode - serving embedded files');
+      // Use embedded files when running as a packaged executable
+      this.app.use((req: Request, res: Response, next: NextFunction) => {
+        let filePath = req.path === '/' ? 'index.html' : req.path.substring(1);
+        
+        // Check if file exists in embedded files
+        if (embeddedFiles[filePath]) {
+          const file = embeddedFiles[filePath];
+          res.type(this.getMimeType(filePath));
+          if (file.binary) {
+            res.send(Buffer.from(file.content, 'base64'));
+          } else {
+            res.send(file.content);
+          }
+          return;
+        }
+        
+        // For SPA routing, serve index.html for non-asset paths
+        if (!filePath.includes('.') && embeddedFiles['index.html']) {
+          res.type('text/html').send(embeddedFiles['index.html'].content);
+          return;
+        }
+        
+        next();
+      });
+    } else {
+      // Serve static files from filesystem (development mode)
+      this.app.use(express.static(this.config.staticFilesPath));
+
+      // SPA fallback - serve index.html for all non-file routes (client-side routing)
+      this.app.get('*', (_req: Request, res: Response) => {
+        res.sendFile(path.join(this.config.staticFilesPath, 'index.html'));
+      });
+    }
   }
 
   /**

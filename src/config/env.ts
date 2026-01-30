@@ -24,7 +24,7 @@ export function loadConfig(): EnvConfig {
     maxConnections: parseInt(process.env.MAX_CONNECTIONS || '10', 10),
     maxRequestsPerMinute: parseInt(process.env.MAX_REQUESTS_PER_MINUTE || '5', 10),
     nodeEnv: process.env.NODE_ENV || 'development',
-    staticFilesPath: process.env.STATIC_FILES_PATH || path.join(__dirname, '../../public'),
+    staticFilesPath: process.env.STATIC_FILES_PATH || path.join(__dirname, '../../public-react'),
   };
 }
 

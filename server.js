@@ -93,30 +93,47 @@ setInterval(() => {
 if (require.main === module && process.isSEA) {
     // When running as SEA, serve assets from the bundle
     const sea = require('node:sea');
+    const fs = require('fs');
 
-    app.get('/', (req, res) => {
-        res.type('html').send(sea.getAsset('public/index.html'));
+    // Serve static assets from the bundle
+    app.get('/assets/:filename', (req, res) => {
+        try {
+            const filename = req.params.filename;
+            const content = sea.getAsset('public-react/assets/' + filename);
+            if (filename.endsWith('.js')) {
+                res.type('js').send(content);
+            } else if (filename.endsWith('.css')) {
+                res.type('css').send(content);
+            } else {
+                res.send(content);
+            }
+        } catch (err) {
+            console.error('Error loading asset:', err.message);
+            res.status(404).send('Asset not found');
+        }
     });
 
-    app.get('/obs.html', (req, res) => {
-        res.type('html').send(sea.getAsset('public/obs.html'));
+    app.get('/vite.svg', (req, res) => {
+        try {
+            res.type('image/svg+xml').send(sea.getAsset('public-react/vite.svg'));
+        } catch (err) {
+            res.status(404).send('Not found');
+        }
     });
 
-    app.get('/app.js', (req, res) => {
-        res.type('js').send(sea.getAsset('public/app.js'));
-    });
-
-    app.get('/connection.js', (req, res) => {
-        res.type('js').send(sea.getAsset('public/connection.js'));
-    });
-
-    app.get('/style.css', (req, res) => {
-        res.type('css').send(sea.getAsset('public/style.css'));
+    // SPA fallback - serve index.html for all routes
+    app.get('*', (req, res) => {
+        res.type('html').send(sea.getAsset('public-react/index.html'));
     });
 } else {
     // When running normally, serve from file system
-    const publicPath = path.join(__dirname, 'public');
+    const publicPath = path.join(__dirname, 'public-react');
     app.use(express.static(publicPath));
+
+    // SPA fallback - serve index.html for all non-file routes
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(publicPath, 'index.html'));
+    });
 }
 
 // Start http listener

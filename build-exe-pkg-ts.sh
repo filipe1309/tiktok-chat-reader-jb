@@ -27,9 +27,9 @@ if ! command -v pkg &> /dev/null; then
     npm install -g pkg
 fi
 
-# Step 4: Copy public files to dist
-echo "📁 Copying public files..."
-cp -r public dist/
+# Step 4: Copy public-react files to dist
+echo "📁 Copying public-react files..."
+cp -r public-react dist/
 
 # Step 5: Create a bundled server file with embedded static files
 echo "📦 Embedding static files..."
@@ -40,41 +40,41 @@ const path = require('path');
 // Read the compiled server file
 let serverCode = fs.readFileSync('dist/main.js', 'utf8');
 
-// Read all public files
-const publicFiles = {
-  'index.html': fs.readFileSync('public/index.html', 'utf8'),
-  'obs.html': fs.readFileSync('public/obs.html', 'utf8'),
-  'poll.html': fs.readFileSync('public/poll.html', 'utf8'),
-  'app.js': fs.readFileSync('public/app.js', 'utf8'),
-  'connection.js': fs.readFileSync('public/connection.js', 'utf8'),
-  'poll.js': fs.readFileSync('public/poll.js', 'utf8'),
-  'style.css': fs.readFileSync('public/style.css', 'utf8'),
-  'poll.css': fs.readFileSync('public/poll.css', 'utf8')
-};
-
-// Create embedded files code
-const embeddedFilesCode = \`
-// Embedded static files for pkg build
-const EMBEDDED_FILES = \${JSON.stringify(publicFiles, null, 2)};
-
-// Override static file serving for pkg
-if (process.pkg) {
-  const express = require('express');
-  const app = require('./presentation/server/HttpSocketServer').HttpSocketServer.prototype;
-  const originalSetupMiddleware = app.setupMiddleware;
+// Function to recursively read all files in a directory
+function readFilesRecursively(dir, basePath = '') {
+  const files = {};
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
   
-  app.setupMiddleware = function() {
-    this.app.get('/', (req, res) => res.type('html').send(EMBEDDED_FILES['index.html']));
-    this.app.get('/index.html', (req, res) => res.type('html').send(EMBEDDED_FILES['index.html']));
-    this.app.get('/obs.html', (req, res) => res.type('html').send(EMBEDDED_FILES['obs.html']));
-    this.app.get('/poll.html', (req, res) => res.type('html').send(EMBEDDED_FILES['poll.html']));
-    this.app.get('/app.js', (req, res) => res.type('js').send(EMBEDDED_FILES['app.js']));
-    this.app.get('/connection.js', (req, res) => res.type('js').send(EMBEDDED_FILES['connection.js']));
-    this.app.get('/poll.js', (req, res) => res.type('js').send(EMBEDDED_FILES['poll.js']));
-    this.app.get('/style.css', (req, res) => res.type('css').send(EMBEDDED_FILES['style.css']));
-    this.app.get('/poll.css', (req, res) => res.type('css').send(EMBEDDED_FILES['poll.css']));
-  };
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    // Normalize path separators to forward slashes for cross-platform compatibility
+    const relativePath = (basePath ? path.join(basePath, entry.name) : entry.name).replace(/\\\\/g, '/');
+    
+    if (entry.isDirectory()) {
+      Object.assign(files, readFilesRecursively(fullPath, relativePath));
+    } else {
+      // Read binary files as base64, text files as utf8
+      const ext = path.extname(entry.name).toLowerCase();
+      const isBinary = ['.png', '.jpg', '.jpeg', '.gif', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.svg'].includes(ext);
+      
+      if (isBinary) {
+        files[relativePath] = { content: fs.readFileSync(fullPath).toString('base64'), binary: true };
+      } else {
+        files[relativePath] = { content: fs.readFileSync(fullPath, 'utf8'), binary: false };
+      }
+    }
+  }
+  return files;
 }
+
+// Read all public-react files
+const publicFiles = readFilesRecursively('public-react');
+
+// Create embedded files code - assign to globalThis so it survives esbuild bundling
+// and can be accessed at runtime by HttpSocketServer.ts via getEmbeddedFiles()
+const embeddedFilesCode = \`
+// Embedded static files for pkg build - assigned to globalThis for runtime access
+globalThis.EMBEDDED_FILES = \${JSON.stringify(publicFiles, null, 2)};
 \`;
 
 // Prepend embedded files to the main bundle

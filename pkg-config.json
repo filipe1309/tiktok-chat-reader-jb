@@ -4,7 +4,7 @@
   "bin": "dist/server-bundled.js",
   "pkg": {
     "assets": [
-      "dist/public/**/*"
+      "dist/public-react/**/*"
     ],
     "targets": [
       "node18-win-x64",

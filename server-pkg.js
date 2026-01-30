@@ -102,66 +102,58 @@ if (process.pkg) {
   // We'll serve the files that were embedded during the build process
 
   // Define the asset base path - pkg puts assets relative to where the script is
-  const ASSET_BASE = path.join(__dirname, 'public');
+  const ASSET_BASE = path.join(__dirname, 'public-react');
 
   // Log for debugging
   console.info('Asset base path:', ASSET_BASE);
 
-  app.get('/', (req, res) => {
+  // Serve assets folder
+  app.get('/assets/:filename', (req, res) => {
     try {
-      // Use explicit path that pkg can statically analyze
-      const content = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
+      const filename = req.params.filename;
+      const content = fs.readFileSync(path.join(__dirname, 'public-react', 'assets', filename), 'utf8');
+      if (filename.endsWith('.js')) {
+        res.type('js').send(content);
+      } else if (filename.endsWith('.css')) {
+        res.type('css').send(content);
+      } else {
+        res.send(content);
+      }
+    } catch (err) {
+      console.error('Error loading asset:', err.message);
+      res.status(404).send('Asset not found');
+    }
+  });
+
+  app.get('/vite.svg', (req, res) => {
+    try {
+      const content = fs.readFileSync(path.join(__dirname, 'public-react', 'vite.svg'), 'utf8');
+      res.type('image/svg+xml').send(content);
+    } catch (err) {
+      res.status(404).send('Not found');
+    }
+  });
+
+  // SPA fallback - serve index.html for all routes
+  app.get('*', (req, res) => {
+    try {
+      const content = fs.readFileSync(path.join(__dirname, 'public-react', 'index.html'), 'utf8');
       res.type('html').send(content);
     } catch (err) {
       console.error('Error loading index.html:', err.message);
       res.status(500).send('Error loading page: ' + err.message);
     }
   });
-
-  app.get('/obs.html', (req, res) => {
-    try {
-      const content = fs.readFileSync(path.join(__dirname, 'public', 'obs.html'), 'utf8');
-      res.type('html').send(content);
-    } catch (err) {
-      console.error('Error loading obs.html:', err.message);
-      res.status(500).send('Error loading page: ' + err.message);
-    }
-  });
-
-  app.get('/app.js', (req, res) => {
-    try {
-      const content = fs.readFileSync(path.join(__dirname, 'public', 'app.js'), 'utf8');
-      res.type('js').send(content);
-    } catch (err) {
-      console.error('Error loading app.js:', err.message);
-      res.status(500).send('Error loading file: ' + err.message);
-    }
-  });
-
-  app.get('/connection.js', (req, res) => {
-    try {
-      const content = fs.readFileSync(path.join(__dirname, 'public', 'connection.js'), 'utf8');
-      res.type('js').send(content);
-    } catch (err) {
-      console.error('Error loading connection.js:', err.message);
-      res.status(500).send('Error loading file: ' + err.message);
-    }
-  });
-
-  app.get('/style.css', (req, res) => {
-    try {
-      const content = fs.readFileSync(path.join(__dirname, 'public', 'style.css'), 'utf8');
-      res.type('css').send(content);
-    } catch (err) {
-      console.error('Error loading style.css:', err.message);
-      res.status(500).send('Error loading file: ' + err.message);
-    }
-  });
 } else {
   // When running normally (development), serve from file system
   console.info('Running in development mode - serving files from file system');
-  const publicPath = path.join(__dirname, 'public');
+  const publicPath = path.join(__dirname, 'public-react');
   app.use(express.static(publicPath));
+
+  // SPA fallback - serve index.html for all non-file routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(publicPath, 'index.html'));
+  });
 }
 
 // Start http listener
