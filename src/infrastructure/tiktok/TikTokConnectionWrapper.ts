@@ -121,8 +121,7 @@ export class TikTokConnectionWrapper extends EventEmitter implements ITikTokConn
       const state = await this.connection.connect();
       
       this.log(
-        `${isReconnect ? 'Reconnected' : 'Connected'} to roomId ${state.roomId}, ` +
-        `websocket: ${state.upgradedToWebsocket}`
+        `${isReconnect ? 'Reconnected' : 'Connected'} to roomId ${state.roomId}`
       );
 
       this.connected = true;
@@ -140,7 +139,7 @@ export class TikTokConnectionWrapper extends EventEmitter implements ITikTokConn
 
       const connectionState: ConnectionState = {
         roomId: state.roomId,
-        upgradedToWebsocket: state.upgradedToWebsocket,
+        upgradedToWebsocket: true, // WebSocket is always used in v2.x of tiktok-live-connector
         isConnected: true,
       };
 
