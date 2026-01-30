@@ -135,8 +135,7 @@ NODE_ENV=development
 
 The poll feature allows viewers to vote by typing numbers in chat. Access it at `http://localhost:8081/poll.html`.
 
-![Poll Feature Demo](docs/poll.mp4)
-
+https://github.com/user-attachments/assets/bf57699b-470d-4bba-a128-340cf62bb431
 
 ### How It Works
 
