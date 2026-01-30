@@ -32,6 +32,34 @@
         </div>
     </div>
 
+    <!-- Poll Results Section -->
+    <div class="section results-section">
+        <h2>📊 Poll Results</h2>
+        
+        <div class="poll-status">
+            <div class="timer-display">
+                <span class="timer-label">Time Remaining:</span>
+                <span id="timerValue" class="timer-value">--</span>
+            </div>
+            <div class="total-votes">
+                <span class="votes-label">Total Votes:</span>
+                <span id="totalVotes" class="votes-value">0</span>
+            </div>
+            <div class="poll-state">
+                <span class="state-label">Status:</span>
+                <span id="pollState" class="state-value state-idle">Idle</span>
+            </div>
+        </div>
+
+        <div id="pollQuestion-display" class="poll-question-display">
+            <!-- Poll question will be displayed here -->
+        </div>
+
+        <div id="resultsContainer" class="results-container">
+            <!-- Results will be dynamically generated here -->
+        </div>
+    </div>
+
     <!-- Poll Configuration Section -->
     <div class="section config-section">
         <h2>⚙️ Poll Configuration</h2>
@@ -63,34 +91,6 @@
             <button id="startPollBtn" class="btn-primary" disabled>▶️ Start Poll</button>
             <button id="stopPollBtn" class="btn-danger" disabled>⏹️ Stop Poll</button>
             <button id="resetPollBtn" class="btn-secondary">🔄 Reset Poll</button>
-        </div>
-    </div>
-
-    <!-- Poll Results Section -->
-    <div class="section results-section">
-        <h2>📊 Poll Results</h2>
-        
-        <div class="poll-status">
-            <div class="timer-display">
-                <span class="timer-label">Time Remaining:</span>
-                <span id="timerValue" class="timer-value">--</span>
-            </div>
-            <div class="total-votes">
-                <span class="votes-label">Total Votes:</span>
-                <span id="totalVotes" class="votes-value">0</span>
-            </div>
-            <div class="poll-state">
-                <span class="state-label">Status:</span>
-                <span id="pollState" class="state-value state-idle">Idle</span>
-            </div>
-        </div>
-
-        <div id="pollQuestion-display" class="poll-question-display">
-            <!-- Poll question will be displayed here -->
-        </div>
-
-        <div id="resultsContainer" class="results-container">
-            <!-- Results will be dynamically generated here -->
         </div>
     </div>
 
