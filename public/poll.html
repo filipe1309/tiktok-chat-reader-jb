@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok LIVE Poll</title>
+    <title>Enquete TikTok LIVE</title>
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="poll.css">
@@ -17,94 +17,94 @@
 </head>
 <body>
     <div class="head">
-        <h1>🗳️ TikTok LIVE Poll</h1>
-        <span class="subTitle">Interactive voting system for TikTok Lives</span>
+        <h1>🗳️ Enquete TikTok LIVE</h1>
+        <span class="subTitle">Sistema de votação interativo para Lives do TikTok</span>
     </div>
 
-    <!-- Connection Section -->
+    <!-- Seção de Conexão -->
     <div class="section connection-section">
-        <h2>🔗 Connection</h2>
+        <h2>🔗 Conexão</h2>
         <div class="inputFields">
-            <p>Enter the <b>@username</b> of a user who is currently live:</p>
-            <input type="text" id="uniqueIdInput" placeholder="@username">
-            <input type="button" id="connectButton" value="Connect">
-            <span id="connectionStatus" class="status-disconnected">Disconnected</span>
+            <p>Digite o <b>@usuário</b> de alguém que está ao vivo:</p>
+            <input type="text" id="uniqueIdInput" placeholder="@usuário">
+            <input type="button" id="connectButton" value="Conectar">
+            <span id="connectionStatus" class="status-disconnected">Desconectado</span>
         </div>
     </div>
 
-    <!-- Poll Results Section -->
+    <!-- Seção de Resultados da Enquete -->
     <div class="section results-section">
-        <h2>📊 Poll Results</h2>
+        <h2>📊 Resultados da Enquete</h2>
         
         <div class="poll-status">
             <div class="timer-display">
-                <span class="timer-label">Time Remaining:</span>
+                <span class="timer-label">Tempo Restante:</span>
                 <span id="timerValue" class="timer-value">--</span>
             </div>
             <div class="total-votes">
-                <span class="votes-label">Total Votes:</span>
+                <span class="votes-label">Total de Votos:</span>
                 <span id="totalVotes" class="votes-value">0</span>
             </div>
             <div class="poll-state">
                 <span class="state-label">Status:</span>
-                <span id="pollState" class="state-value state-idle">Idle</span>
+                <span id="pollState" class="state-value state-idle">Aguardando</span>
             </div>
         </div>
 
         <div id="pollQuestion-display" class="poll-question-display">
-            <!-- Poll question will be displayed here -->
+            <!-- A pergunta da enquete será exibida aqui -->
         </div>
 
         <div id="resultsContainer" class="results-container">
-            <!-- Results will be dynamically generated here -->
+            <!-- Os resultados serão gerados dinamicamente aqui -->
         </div>
     </div>
 
-    <!-- Poll Configuration Section -->
+    <!-- Seção de Configuração da Enquete -->
     <div class="section config-section">
-        <h2>⚙️ Poll Configuration</h2>
+        <h2>⚙️ Configuração da Enquete</h2>
         
         <div class="config-row">
             <div class="config-item">
-                <label for="numOptions">Number of Options:</label>
+                <label for="numOptions">Número de Opções:</label>
                 <input type="number" id="numOptions" min="2" max="10" value="4">
-                <button id="updateOptionsBtn" class="btn-secondary">Update Options</button>
+                <button id="updateOptionsBtn" class="btn-secondary">Atualizar Opções</button>
             </div>
             <div class="config-item">
-                <label for="pollTimer">Timer (seconds):</label>
+                <label for="pollTimer">Tempo (segundos):</label>
                 <input type="number" id="pollTimer" min="10" max="300" value="30">
             </div>
         </div>
 
         <div class="config-row">
             <div class="config-item full-width">
-                <label for="pollQuestion">Poll Question:</label>
-                <input type="text" id="pollQuestion" placeholder="Enter your poll question here..." class="full-input">
+                <label for="pollQuestion">Pergunta da Enquete:</label>
+                <input type="text" id="pollQuestion" placeholder="Digite sua pergunta aqui..." class="full-input">
             </div>
         </div>
 
         <div id="optionsContainer" class="options-config">
-            <!-- Options will be dynamically generated here -->
+            <!-- As opções serão geradas dinamicamente aqui -->
         </div>
 
         <div class="poll-controls">
-            <button id="startPollBtn" class="btn-primary" disabled>▶️ Start Poll</button>
-            <button id="stopPollBtn" class="btn-danger" disabled>⏹️ Stop Poll</button>
-            <button id="resetPollBtn" class="btn-secondary">🔄 Reset Poll</button>
+            <button id="startPollBtn" class="btn-primary" disabled>▶️ Iniciar Enquete</button>
+            <button id="stopPollBtn" class="btn-danger" disabled>⏹️ Parar Enquete</button>
+            <button id="resetPollBtn" class="btn-secondary">🔄 Reiniciar Enquete</button>
         </div>
     </div>
 
-    <!-- Vote Log Section -->
+    <!-- Seção de Registro de Votos -->
     <div class="section log-section">
-        <h2>📝 Vote Log</h2>
+        <h2>📝 Registro de Votos</h2>
         <div class="log-controls">
             <label>
-                <input type="checkbox" id="showVoteLogs" checked> Show individual votes
+                <input type="checkbox" id="showVoteLogs" checked> Mostrar votos individuais
             </label>
-            <button id="clearLogBtn" class="btn-secondary btn-small">Clear Log</button>
+            <button id="clearLogBtn" class="btn-secondary btn-small">Limpar Registro</button>
         </div>
         <div id="voteLog" class="vote-log">
-            <!-- Vote logs will appear here -->
+            <!-- Os registros de votos aparecerão aqui -->
         </div>
     </div>
 </body>
