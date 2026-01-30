@@ -14,10 +14,12 @@
     "build:exe": "bash build-exe-pkg-ts.sh"
   },
   "dependencies": {
+    "@types/ws": "^8.18.1",
     "dotenv": "^16.0.0",
     "express": "^4.17.2",
     "socket.io": "^4.4.1",
-    "tiktok-live-connector": "^2.1.1-beta1"
+    "tiktok-live-connector": "^2.1.1-beta1",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
