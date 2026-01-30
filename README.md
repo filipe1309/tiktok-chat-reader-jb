@@ -79,6 +79,30 @@ npm run dev
 | `npm run clean` | Remove dist folder |
 | `npm run build:exe` | Build standalone executables |
 
+## 🛠️ Make Commands
+
+For convenience, you can use `make` commands as shortcuts:
+
+| Command | Description |
+|---------|-------------|
+| `make help` | Display all available commands |
+| `make install` | Install project dependencies |
+| `make build` | Compile TypeScript to JavaScript |
+| `make clean` | Remove build artifacts |
+| `make clean-all` | Remove build artifacts and node_modules |
+| `make dev` | Run development server |
+| `make dev-watch` | Run development server with auto-reload |
+| `make start` | Build and start production server |
+| `make lint` | Run ESLint |
+| `make lint-fix` | Run ESLint with auto-fix |
+| `make build-exe` | Build cross-platform executables |
+| `make watch` | Watch for file changes and rebuild |
+| `make verify` | Run linter and type check |
+| `make all` | Clean, install, build, and verify |
+| `make upgrade` | Update dependencies |
+| `make outdated` | Check for outdated packages |
+| `make info` | Display project information |
+
 ## ⚙️ Configuration
 
 Create a `.env` file (see `.env.example`):
@@ -109,14 +133,57 @@ NODE_ENV=development
 
 ## 🗳️ Poll Feature
 
-The poll feature allows viewers to vote by typing numbers in chat:
+The poll feature allows viewers to vote by typing numbers in chat. Access it at `http://localhost:8081/poll.html`.
 
-1. Connect to a TikTok live stream
-2. Configure poll options (2-10 choices)
-3. Set timer duration
-4. Start the poll
-5. Viewers vote by typing 1, 2, 3, etc.
-6. Results update in real-time
+![Poll Feature Demo](docs/poll.mp4)
+
+
+### How It Works
+
+1. **Connect** to a TikTok live stream using the streamer's @username
+2. **Configure** your poll with 2-10 options
+3. **Set** the timer duration (10-300 seconds)
+4. **Start** the poll
+5. **Viewers vote** by typing numbers (1, 2, 3, etc.) in the chat
+6. **Results** update in real-time with animated progress bars
+
+### Poll Configuration
+
+| Setting | Range | Description |
+|---------|-------|-------------|
+| Number of Options | 2-10 | How many choices voters can pick from |
+| Timer | 10-300 seconds | How long the poll stays open |
+| Poll Question | Text | The question displayed to viewers |
+| Option Labels | Text | Custom labels for each option |
+
+### Poll Controls
+
+| Button | Action |
+|--------|--------|
+| ▶️ Start Poll | Begin accepting votes and start the timer |
+| ⏹️ Stop Poll | End voting early |
+| 🔄 Reset Poll | Clear all votes and reset configuration |
+
+### Features
+
+- **One vote per user**: Each viewer can only vote once per poll
+- **Real-time results**: Vote counts and percentages update instantly
+- **Vote logging**: Optional detailed log of each vote with username and timestamp
+- **Timer display**: Countdown shows remaining time
+- **Total vote counter**: See how many people have participated
+
+### Example Usage
+
+1. Open `http://localhost:8081/poll.html`
+2. Enter the streamer's username and click "Connect"
+3. Set options like:
+   - Question: "What game should I play next?"
+   - Option 1: "Minecraft"
+   - Option 2: "Fortnite"
+   - Option 3: "Valorant"
+4. Set timer to 60 seconds
+5. Click "Start Poll"
+6. Viewers type `1`, `2`, or `3` in chat to vote
 
 ## 🔧 Building Executables
 
