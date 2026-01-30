@@ -184,12 +184,26 @@
             const numOptions = pollState.options.length;
             
             if (numOptions === 0) {
-                container.html(`
-                    <div class="waiting-message">
-                        <div class="icon">🔄</div>
-                        <div>Aguardando dados da enquete...</div>
-                    </div>
-                `);
+                // Show default options (1-4) while waiting for poll data
+                for (let i = 1; i <= 4; i++) {
+                    container.append(`
+                        <div class="result-item">
+                            <div class="result-header">
+                                <div class="result-option">
+                                    <span class="result-number">${i}</span>
+                                    <span class="result-text">Opção ${i}</span>
+                                </div>
+                                <div class="result-stats">
+                                    <span class="result-votes">0 votos</span>
+                                    <span class="result-percentage">(0%)</span>
+                                </div>
+                            </div>
+                            <div class="result-bar-container">
+                                <div class="result-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    `);
+                }
                 return;
             }
 
