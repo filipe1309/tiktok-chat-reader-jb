@@ -17,6 +17,7 @@ import { HttpSocketServer, ServerConfig } from './presentation/server';
 class Application {
   private server: HttpSocketServer | null = null;
   private rateLimiterRepository: InMemoryRateLimiterRepository | null = null;
+  private isShuttingDown = false;
 
   /**
    * Bootstrap and start the application
@@ -78,6 +79,10 @@ class Application {
    * Stop the application
    */
   async stop(): Promise<void> {
+    if (this.isShuttingDown) {
+      return;
+    }
+    this.isShuttingDown = true;
     console.info('Stopping application...');
 
     if (this.server) {
@@ -98,8 +103,15 @@ class Application {
    */
   private setupGracefulShutdown(): void {
     const shutdown = async (signal: string) => {
+      if (this.isShuttingDown) {
+        return;
+      }
       console.info(`Received ${signal}, initiating graceful shutdown...`);
-      await this.stop();
+      try {
+        await this.stop();
+      } catch (error) {
+        console.error('Error during shutdown:', error);
+      }
       process.exit(0);
     };
 
@@ -112,6 +124,10 @@ class Application {
     });
 
     process.on('unhandledRejection', (reason) => {
+      // Ignore errors during shutdown
+      if (this.isShuttingDown) {
+        return;
+      }
       console.error('Unhandled rejection:', reason);
       shutdown('unhandledRejection');
     });

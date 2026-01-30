@@ -78,6 +78,12 @@ export class HttpSocketServer {
           return;
         }
 
+        // Only close if server is listening
+        if (!this.httpServer.listening) {
+          resolve();
+          return;
+        }
+
         this.httpServer.close((err) => {
           if (err) {
             reject(err);
