@@ -33,9 +33,21 @@
         </div>
     </div>
 
+    <!-- Controles da Enquete -->
+    <div class="section controls-section">
+        <div class="poll-controls">
+            <button id="startPollBtn" class="btn-primary" disabled>▶️ Iniciar Enquete</button>
+            <button id="stopPollBtn" class="btn-danger" disabled>⏹️ Parar Enquete</button>
+            <button id="resetPollBtn" class="btn-secondary">🔄 Reiniciar Enquete</button>
+        </div>
+    </div>
+
     <!-- Seção de Resultados da Enquete -->
     <div class="section results-section">
-        <h2>📊 Resultados da Enquete</h2>
+        <div class="section-header">
+            <h2>📊 Resultados da Enquete</h2>
+            <button id="popoutResultsBtn" class="btn-secondary btn-small" title="Abrir resultados em nova janela">🖥️ Pop-out</button>
+        </div>
         
         <div class="poll-status">
             <div class="timer-display">
@@ -86,12 +98,6 @@
 
         <div id="optionsContainer" class="options-config">
             <!-- As opções serão geradas dinamicamente aqui -->
-        </div>
-
-        <div class="poll-controls">
-            <button id="startPollBtn" class="btn-primary" disabled>▶️ Iniciar Enquete</button>
-            <button id="stopPollBtn" class="btn-danger" disabled>⏹️ Parar Enquete</button>
-            <button id="resetPollBtn" class="btn-secondary">🔄 Reiniciar Enquete</button>
         </div>
     </div>
 

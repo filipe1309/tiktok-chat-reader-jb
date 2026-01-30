@@ -23,6 +23,22 @@ let pollState = {
 const DEFAULT_NUM_OPTIONS = 4;
 const DEFAULT_TIMER = 30;
 
+// BroadcastChannel for syncing with popup window
+let pollChannel = null;
+let popupWindow = null;
+
+try {
+    pollChannel = new BroadcastChannel('poll-results-channel');
+    // Listen for state requests from popup
+    pollChannel.onmessage = (event) => {
+        if (event.data.type === 'request-state') {
+            broadcastPollState();
+        }
+    };
+} catch (e) {
+    console.warn('BroadcastChannel not supported:', e);
+}
+
 $(document).ready(() => {
     // Initialize connection handlers
     $('#connectButton').click(connect);
@@ -50,6 +66,9 @@ $(document).ready(() => {
 
     // Setup chat message listener for votes
     setupChatListener();
+
+    // Setup popup button
+    $('#popoutResultsBtn').click(openResultsPopup);
 });
 
 /**
@@ -128,6 +147,9 @@ function processVote(data, optionNumber) {
 
     // Update display
     updateResultsDisplay();
+
+    // Broadcast to popup
+    broadcastPollState();
 }
 
 /**
@@ -237,6 +259,7 @@ function startPoll() {
     pollState.timerInterval = setInterval(() => {
         pollState.timeLeft--;
         updateTimerDisplay();
+        broadcastPollState();
 
         if (pollState.timeLeft <= 0) {
             stopPoll();
@@ -244,6 +267,7 @@ function startPoll() {
     }, 1000);
 
     updateResultsDisplay();
+    broadcastPollState();
     
     console.log('Poll started:', { options, timer, question });
 }
@@ -271,6 +295,7 @@ function stopPoll() {
 
     // Highlight winner
     updateResultsDisplay(true);
+    broadcastPollState();
 
     console.log('Poll stopped. Final results:', pollState.votes);
 }
@@ -301,6 +326,7 @@ function resetPoll() {
     $('#stopPollBtn').prop('disabled', true);
 
     updateResultsDisplay();
+    broadcastPollState();
     
     console.log('Poll reset');
 }
@@ -382,4 +408,53 @@ function updateResultsDisplay(showWinner = false) {
 function sanitize(text) {
     if (typeof text !== 'string') return text;
     return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/**
+ * Open results in a popup window
+ */
+function openResultsPopup() {
+    // Check if popup is already open
+    if (popupWindow && !popupWindow.closed) {
+        popupWindow.focus();
+        return;
+    }
+
+    // Calculate popup size and position
+    const width = 600;
+    const height = 500;
+    const left = (screen.width - width) / 2;
+    const top = (screen.height - height) / 2;
+
+    // Open popup with minimal chrome (no URL bar, toolbar, etc.)
+    popupWindow = window.open(
+        'poll-results.html',
+        'pollResultsPopup',
+        `width=${width},height=${height},left=${left},top=${top},` +
+        'toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes'
+    );
+
+    // Send initial state after a short delay to let popup load
+    setTimeout(() => {
+        broadcastPollState();
+    }, 500);
+}
+
+/**
+ * Broadcast current poll state to popup window
+ */
+function broadcastPollState() {
+    if (!pollChannel) return;
+
+    pollChannel.postMessage({
+        type: 'poll-update',
+        state: {
+            isRunning: pollState.isRunning,
+            options: pollState.options,
+            votes: pollState.votes,
+            timeLeft: pollState.timeLeft,
+            question: pollState.question,
+            finished: !pollState.isRunning && pollState.options.length > 0 && Object.values(pollState.votes).some(v => v > 0)
+        }
+    });
 }

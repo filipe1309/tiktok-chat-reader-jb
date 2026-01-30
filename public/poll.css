@@ -41,6 +41,32 @@ body {
     font-size: 1.5em;
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-header h2 {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+/* Controls Section */
+.controls-section {
+    background: rgba(102, 126, 234, 0.1);
+    border: 2px solid rgba(102, 126, 234, 0.3);
+}
+
+.controls-section .poll-controls {
+    margin: 0;
+    justify-content: center;
+}
+
 /* Connection Section */
 .connection-section .inputFields {
     display: flex;
