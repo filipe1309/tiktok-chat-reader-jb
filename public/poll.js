@@ -200,7 +200,7 @@ function startPoll() {
     // Get configuration
     const numOptions = parseInt($('#numOptions').val()) || DEFAULT_NUM_OPTIONS;
     const timer = parseInt($('#pollTimer').val()) || DEFAULT_TIMER;
-    const question = $('#pollQuestion').val() || 'Vote now!';
+    const question = $('#pollQuestion').val() || 'Vote agora!';
 
     // Collect options text
     const options = [];
