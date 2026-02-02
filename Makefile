@@ -14,7 +14,7 @@ ESLINT := npx eslint
 PKG := npx pkg
 
 # Directories
-SRC_DIR := src
+BACKEND_DIR := backend
 DIST_DIR := dist
 PUBLIC_DIR := public-react
 FRONTEND_DIR := frontend

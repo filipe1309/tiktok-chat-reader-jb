@@ -7,7 +7,7 @@ A chat reader for TikTok LIVE utilizing TikTok-Live-Connector and Socket.IO. Bui
 This project follows **Clean Architecture** principles with clear separation of concerns:
 
 ```
-src/
+backend/
 ├── domain/              # Business entities and interfaces (innermost layer)
 │   ├── entities/        # Core business objects
 │   ├── enums/           # Domain enumerations

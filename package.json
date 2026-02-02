@@ -6,10 +6,10 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/main.js",
-    "dev": "ts-node -r tsconfig-paths/register src/main.ts",
-    "dev:watch": "nodemon --exec ts-node -r tsconfig-paths/register src/main.ts",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
+    "dev": "ts-node -r tsconfig-paths/register backend/main.ts",
+    "dev:watch": "nodemon --exec ts-node -r tsconfig-paths/register backend/main.ts",
+    "lint": "eslint backend/**/*.ts",
+    "lint:fix": "eslint backend/**/*.ts --fix",
     "clean": "rm -rf dist",
     "build:exe": "bash build-exe-pkg-ts.sh"
   },
