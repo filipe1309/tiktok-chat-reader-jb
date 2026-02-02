@@ -17,12 +17,15 @@ export function PollResultsPage() {
   const [pollState, setPollState] = useState<PollState>(initialPollState);
   const [setupConfig, setSetupConfig] = useState<SetupConfig | null>(null);
   const [isWaiting, setIsWaiting] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
+  const [channelRef, setChannelRef] = useState<BroadcastChannel | null>(null);
 
   useEffect(() => {
     let channel: BroadcastChannel | null = null;
 
     try {
       channel = new BroadcastChannel('poll-results-channel');
+      setChannelRef(channel);
 
       channel.onmessage = (event) => {
         const data = event.data;
@@ -44,6 +47,8 @@ export function PollResultsPage() {
           const config = data.config as SetupConfig;
           setSetupConfig(config);
           setIsWaiting(false);
+        } else if (data.type === 'connection-status') {
+          setIsConnected(data.isConnected);
         }
       };
 
@@ -57,6 +62,12 @@ export function PollResultsPage() {
       channel?.close();
     };
   }, []);
+
+  // Send commands to main window
+  const sendCommand = (command: 'start' | 'stop' | 'reset') => {
+    if (!channelRef) return;
+    channelRef.postMessage({ type: 'poll-command', command });
+  };
 
   const getTotalVotes = useCallback(() => {
     return Object.values(pollState.votes).reduce((sum, count) => sum + count, 0);
@@ -136,6 +147,32 @@ export function PollResultsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col p-5">
+      <div className="flex-1 text-center mb-5">
+        {/* Control Buttons */}
+        <div className="flex items-center justify-center gap-3 p-4 bg-purple-500/10 rounded-xl border-2 border-purple-500/30">
+          <button 
+            onClick={() => sendCommand('start')}
+            disabled={!isConnected || pollState.isRunning}
+            className="px-6 py-2 text-base font-bold rounded-xl bg-gradient-to-r from-tiktok-cyan to-tiktok-magenta text-white hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ▶️ Iniciar
+          </button>
+          <button 
+            onClick={() => sendCommand('stop')}
+            disabled={!pollState.isRunning}
+            className="px-6 py-2 text-base font-bold rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ⏹️ Parar
+          </button>
+          <button 
+            onClick={() => sendCommand('reset')}
+            className="px-6 py-2 text-base font-bold rounded-xl bg-slate-700 text-white hover:bg-slate-600 transition-all border border-slate-600"
+          >
+            🔄 Reiniciar
+          </button>
+        </div>
+      </div>
+
       <div className="text-center mb-5">
         <h1 className="text-2xl font-bold text-white">📊 Resultados da Enquete</h1>
       </div>

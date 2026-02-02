@@ -35,6 +35,7 @@ interface UsePollReturn {
   getPercentage: (optionId: number) => number;
   openResultsPopup: () => void;
   broadcastSetupConfig: (config: SetupConfig) => void;
+  setConnectionStatus: (isConnected: boolean) => void;
 }
 
 const initialPollState: PollState = {
@@ -55,13 +56,19 @@ export function usePoll(): UsePollReturn {
   const channelRef = useRef<BroadcastChannel | null>(null);
   const popupWindowRef = useRef<Window | null>(null);
   const setupConfigRef = useRef<SetupConfig | null>(null);
+  const connectionStatusRef = useRef<boolean>(false);
+  const commandHandlersRef = useRef<{
+    start: () => void;
+    stop: () => void;
+    reset: () => void;
+  } | null>(null);
 
   // Initialize BroadcastChannel for syncing with popup window
   useEffect(() => {
     try {
       channelRef.current = new BroadcastChannel('poll-results-channel');
       
-      // Listen for state requests from popup
+      // Listen for state requests and commands from popup
       channelRef.current.onmessage = (event) => {
         if (event.data.type === 'request-state') {
           broadcastPollState(pollState);
@@ -71,6 +78,16 @@ export function usePoll(): UsePollReturn {
               type: 'setup-config',
               config: setupConfigRef.current,
             });
+          }
+          // Broadcast connection status
+          channelRef.current?.postMessage({
+            type: 'connection-status',
+            isConnected: connectionStatusRef.current,
+          });
+        } else if (event.data.type === 'poll-command') {
+          const command = event.data.command as 'start' | 'stop' | 'reset';
+          if (commandHandlersRef.current) {
+            commandHandlersRef.current[command]();
           }
         }
       };
@@ -188,6 +205,17 @@ export function usePoll(): UsePollReturn {
     setVoteLog([]);
   }, []);
 
+  // Set connection status and broadcast to popup
+  const setConnectionStatus = useCallback((isConnected: boolean) => {
+    connectionStatusRef.current = isConnected;
+    if (channelRef.current) {
+      channelRef.current.postMessage({
+        type: 'connection-status',
+        isConnected,
+      });
+    }
+  }, []);
+
   const openResultsPopup = useCallback(() => {
     // Check if popup is already open
     if (popupWindowRef.current && !popupWindowRef.current.closed) {
@@ -291,6 +319,23 @@ export function usePoll(): UsePollReturn {
     return Math.round((pollState.votes[optionId] / totalVotes) * 100);
   }, [pollState.votes, getTotalVotes]);
 
+  // Register command handlers for popup communication
+  useEffect(() => {
+    commandHandlersRef.current = {
+      start: () => {
+        if (setupConfigRef.current) {
+          startPoll(
+            setupConfigRef.current.question,
+            setupConfigRef.current.options.map(o => o.text),
+            setupConfigRef.current.timer
+          );
+        }
+      },
+      stop: stopPoll,
+      reset: resetPoll,
+    };
+  }, [startPoll, stopPoll, resetPoll]);
+
   return {
     pollState,
     voteLog,
@@ -304,5 +349,6 @@ export function usePoll(): UsePollReturn {
     getPercentage,
     openResultsPopup,
     broadcastSetupConfig,
+    setConnectionStatus,
   };
 }

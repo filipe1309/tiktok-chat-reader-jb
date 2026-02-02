@@ -5,7 +5,7 @@ import { ConnectionForm, PollSetup, PollResults, VoteLog } from '@/components';
 import type { ChatMessage, PollOption } from '@/types';
 
 export function PollPage() {
-  const { pollState, voteLog, startPoll, stopPoll, resetPoll, processVote, clearVoteLog, getTotalVotes, getPercentage, openResultsPopup, broadcastSetupConfig } = usePoll();
+  const { pollState, voteLog, startPoll, stopPoll, resetPoll, processVote, clearVoteLog, getTotalVotes, getPercentage, openResultsPopup, broadcastSetupConfig, setConnectionStatus } = usePoll();
   
   // Track current setup configuration for preview
   const [setupConfig, setSetupConfig] = useState<{
@@ -47,6 +47,11 @@ export function PollPage() {
   const connection = useTikTokConnection({
     onChat: handleChat,
   });
+
+  // Broadcast connection status to popup
+  useEffect(() => {
+    setConnectionStatus(connection.isConnected);
+  }, [connection.isConnected, setConnectionStatus]);
 
   const handleConnect = (uniqueId: string) => {
     connection.connect(uniqueId, { enableExtendedGiftInfo: false });
