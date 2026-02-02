@@ -153,7 +153,7 @@ export function PollResultsPage() {
           <button 
             onClick={() => sendCommand('start')}
             disabled={!isConnected || pollState.isRunning}
-            className="px-6 py-2 text-base font-bold rounded-xl bg-gradient-to-r from-tiktok-cyan to-tiktok-magenta text-white hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 text-base font-bold rounded-xl bg-gradient-to-r from-green-400 to-blue-500 text-white hover:from-green-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ▶️ Iniciar
           </button>

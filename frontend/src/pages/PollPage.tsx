@@ -104,7 +104,7 @@ export function PollPage() {
                 setupConfig.timer
               )}
               disabled={!connection.isConnected || pollState.isRunning}
-              className="btn-primary px-8 py-3 text-lg disabled:opacity-50"
+              className="px-8 py-3 text-lg font-bold rounded-xl bg-gradient-to-r from-green-400 to-blue-500 text-white hover:from-green-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ▶️ Iniciar Enquete
             </button>

@@ -195,7 +195,7 @@ export function PollSetup({
         <button
           onClick={handleStart}
           disabled={!isValid || disabled}
-          className="btn-primary w-full text-lg py-4"
+          className="w-full text-lg py-4 px-6 bg-gradient-to-r from-green-400 to-blue-500 text-white font-bold rounded-xl hover:from-green-500 hover:to-blue-600 hover:scale-105 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
         >
           ▶️ Iniciar Enquete
         </button>
