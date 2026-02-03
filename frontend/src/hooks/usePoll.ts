@@ -57,11 +57,17 @@ export function usePoll(): UsePollReturn {
   const popupWindowRef = useRef<Window | null>(null);
   const setupConfigRef = useRef<SetupConfig | null>(null);
   const connectionStatusRef = useRef<boolean>(false);
+  const pollStateRef = useRef<PollState>(initialPollState);
   const commandHandlersRef = useRef<{
     start: () => void;
     stop: () => void;
     reset: () => void;
   } | null>(null);
+
+  // Keep pollStateRef in sync with pollState
+  useEffect(() => {
+    pollStateRef.current = pollState;
+  }, [pollState]);
 
   // Initialize BroadcastChannel for syncing with popup window
   useEffect(() => {
@@ -71,7 +77,23 @@ export function usePoll(): UsePollReturn {
       // Listen for state requests and commands from popup
       channelRef.current.onmessage = (event) => {
         if (event.data.type === 'request-state') {
-          broadcastPollState(pollState);
+          // Use pollStateRef.current to get the latest state
+          const currentState = pollStateRef.current;
+          const hasVotes = Object.values(currentState.votes).some(v => v > 0);
+          const serializableState: SerializablePollState = {
+            isRunning: currentState.isRunning,
+            finished: currentState.finished || (!currentState.isRunning && currentState.options.length > 0 && hasVotes),
+            question: currentState.question,
+            options: currentState.options,
+            votes: currentState.votes,
+            votersArray: Array.from(currentState.voters),
+            timer: currentState.timer,
+            timeLeft: currentState.timeLeft,
+          };
+          channelRef.current?.postMessage({
+            type: 'poll-update',
+            state: serializableState,
+          });
           // Also broadcast setup config if available
           if (setupConfigRef.current) {
             channelRef.current?.postMessage({
@@ -224,8 +246,10 @@ export function usePoll(): UsePollReturn {
     }
 
     // Calculate popup size and position
-    const width = 600;
-    const height = 500;
+    // Width: 700px to fit content comfortably
+    // Height: 900px to show up to 8 options + controls + status bar
+    const width = 700;
+    const height = 900;
     const left = (window.screen.width - width) / 2;
     const top = (window.screen.height - height) / 2;
 
