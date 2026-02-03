@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTikTokConnection, usePoll } from '@/hooks';
 import { ConnectionForm, PollSetup, PollResults, VoteLog } from '@/components';
@@ -8,23 +8,18 @@ export function PollPage() {
   const { pollState, voteLog, startPoll, stopPoll, resetPoll, processVote, clearVoteLog, getTotalVotes, getPercentage, openResultsPopup, broadcastSetupConfig, setConnectionStatus } = usePoll();
   
   // Track current setup configuration for preview
+  // Start with null to let PollSetup component initialize via onChange
   const [setupConfig, setSetupConfig] = useState<{
     question: string;
     options: PollOption[];
     timer: number;
-  }>({
-    question: 'Votar agora!',
-    options: [
-      { id: 1, text: 'Sim' },
-      { id: 2, text: 'Não' },
-    ],
-    timer: 30,
-  });
+  } | null>(null);
 
-  // Broadcast initial setup config on mount
+  // Use ref to track poll state for stable callback
+  const pollStateRef = useRef(pollState);
   useEffect(() => {
-    broadcastSetupConfig(setupConfig);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    pollStateRef.current = pollState;
+  }, [pollState]);
 
   const handleSetupChange = useCallback((question: string, options: string[], timer: number) => {
     const newConfig = {
@@ -33,6 +28,8 @@ export function PollPage() {
       timer,
     };
     setSetupConfig(newConfig);
+    // Always update the setup config ref, regardless of poll state
+    // This ensures request-state always has the latest config
     broadcastSetupConfig(newConfig);
   }, [broadcastSetupConfig]);
 
@@ -57,6 +54,16 @@ export function PollPage() {
 
   const handleStartPoll = (question: string, options: string[], timer: number) => {
     startPoll(question, options, timer);
+  };
+
+  // Ensure setupConfig is available before rendering
+  const currentSetupConfig = setupConfig || {
+    question: 'Votar agora!',
+    options: [
+      { id: 1, text: 'Sim' },
+      { id: 2, text: 'Não' },
+    ],
+    timer: 30,
   };
 
   // Check if poll is active (has been configured)
@@ -110,9 +117,9 @@ export function PollPage() {
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <button 
               onClick={() => handleStartPoll(
-                setupConfig.question,
-                setupConfig.options.map((o) => o.text),
-                setupConfig.timer
+                currentSetupConfig.question,
+                currentSetupConfig.options.map((o) => o.text),
+                currentSetupConfig.timer
               )}
               disabled={!connection.isConnected || pollState.isRunning}
               className="px-8 py-3 text-lg font-bold rounded-xl bg-gradient-to-r from-green-400 to-blue-500 text-white hover:from-green-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -158,10 +165,10 @@ export function PollPage() {
             <PollResults
               pollState={{
                 ...pollState,
-                question: setupConfig.question,
-                options: setupConfig.options,
-                votes: setupConfig.options.reduce((acc, opt) => ({ ...acc, [opt.id]: 0 }), {}),
-                timer: setupConfig.timer
+                question: currentSetupConfig.question,
+                options: currentSetupConfig.options,
+                votes: currentSetupConfig.options.reduce((acc, opt) => ({ ...acc, [opt.id]: 0 }), {}),
+                timer: currentSetupConfig.timer
               }}
               getPercentage={() => 0}
               getTotalVotes={() => 0}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // Default options for the poll (fixed 8 options)
 const DEFAULT_OPTIONS = [
@@ -40,44 +40,37 @@ export function PollSetup({
   const [options, setOptions] = useState<string[]>(initialOptions);
   const [selectedOptions, setSelectedOptions] = useState<boolean[]>(initialSelectedOptions);
   const [timer, setTimer] = useState(initialTimer);
-
-  // Update internal state when initial values change
-  useEffect(() => {
-    if (initialQuestion) setQuestion(initialQuestion);
-  }, [initialQuestion]);
-
-  useEffect(() => {
-    if (initialOptions) {
-      setOptions(initialOptions);
-    }
-  }, [initialOptions]);
-
-  useEffect(() => {
-    if (initialSelectedOptions) {
-      setSelectedOptions(initialSelectedOptions);
-    }
-  }, [initialSelectedOptions]);
-
-  useEffect(() => {
-    if (initialTimer) setTimer(initialTimer);
-  }, [initialTimer]);
+  const hasSentInitialChange = useRef(false);
 
   // Get the selected options for the poll
   const getSelectedPollOptions = () => {
-    return options
-      .map((opt, idx) => ({ text: opt.trim() || (idx + 1).toString(), index: idx, selected: selectedOptions[idx] }))
-      .filter(opt => opt.selected)
+    const result = options
+      .map((opt, idx) => ({ 
+        text: opt.trim(), // Don't use index as fallback - keep empty if not filled
+        index: idx, 
+        selected: selectedOptions[idx] 
+      }))
+      .filter(opt => opt.selected && opt.text) // Only include selected AND non-empty options
       .map(opt => opt.text);
+    
+    return result;
   };
 
-  // Notify parent of changes
+  // Send initial onChange immediately on mount
   useEffect(() => {
-    if (onChange) {
+    console.log('[PollSetup] Mount useEffect - hasSentInitialChange:', hasSentInitialChange.current);
+    if (!hasSentInitialChange.current && onChange) {
       const selectedPollOptions = getSelectedPollOptions();
       const questionText = question.trim() || 'Votar agora!';
+      console.log('[PollSetup] Sending initial onChange with options:', selectedPollOptions);
       onChange(questionText, selectedPollOptions, timer);
+      hasSentInitialChange.current = true;
     }
-  }, [question, options, selectedOptions, timer, onChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
+
+  // Handle subsequent changes (user interaction) - REMOVED to prevent continuous calls
+  // Only manual user actions (updateOption, toggleOption) will trigger updates now
 
   const updateOption = (index: number, value: string) => {
     setOptions(prev => {
@@ -85,6 +78,15 @@ export function PollSetup({
       newOptions[index] = value;
       return newOptions;
     });
+    
+    // Notify parent of change after state update
+    if (onChange && hasSentInitialChange.current) {
+      setTimeout(() => {
+        const selectedPollOptions = getSelectedPollOptions();
+        const questionText = question.trim() || 'Votar agora!';
+        onChange(questionText, selectedPollOptions, timer);
+      }, 0);
+    }
   };
 
   const toggleOption = (index: number) => {
@@ -93,6 +95,15 @@ export function PollSetup({
       newSelected[index] = !newSelected[index];
       return newSelected;
     });
+    
+    // Notify parent of change after state update
+    if (onChange && hasSentInitialChange.current) {
+      setTimeout(() => {
+        const selectedPollOptions = getSelectedPollOptions();
+        const questionText = question.trim() || 'Votar agora!';
+        onChange(questionText, selectedPollOptions, timer);
+      }, 0);
+    }
   };
 
   const handleStart = () => {

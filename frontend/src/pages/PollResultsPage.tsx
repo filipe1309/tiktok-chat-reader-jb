@@ -1,6 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { PollState, PollOption } from '@/types';
 import type { SerializablePollState, SetupConfig } from '@/hooks/usePoll';
+
+const DEFAULT_OPTIONS: PollOption[] = [
+  { id: 1, text: 'Sim' },
+  { id: 2, text: 'Não' },
+];
 
 const initialPollState: PollState = {
   isRunning: false,
@@ -44,16 +49,38 @@ export function PollResultsPage() {
           });
           setIsWaiting(false);
         } else if (data.type === 'setup-config') {
-          const config = data.config as SetupConfig;
-          setSetupConfig(config);
+          // Only update setupConfig if poll is NOT active
+          setPollState(currentPollState => {
+            // Check if poll is actually inactive
+            const isPollInactive = !currentPollState.isRunning && 
+                                   !currentPollState.finished && 
+                                   currentPollState.options.length === 0;
+            
+            if (isPollInactive) {
+              const config = data.config as SetupConfig;
+              setSetupConfig(config);
+            }
+            return currentPollState;
+          });
           setIsWaiting(false);
         } else if (data.type === 'connection-status') {
           setIsConnected(data.isConnected);
         }
       };
 
-      // Request initial state from main window
       channel.postMessage({ type: 'request-state' });
+      
+      // Poll for updates every second to keep timer and votes in sync
+      const pollInterval = setInterval(() => {
+        if (channel) {
+          channel.postMessage({ type: 'request-state' });
+        }
+      }, 1000);
+      
+      return () => {
+        clearInterval(pollInterval);
+        channel?.close();
+      };
     } catch (e) {
       console.warn('BroadcastChannel not supported:', e);
     }
@@ -63,7 +90,6 @@ export function PollResultsPage() {
     };
   }, []);
 
-  // Send commands to main window
   const sendCommand = (command: 'start' | 'stop' | 'reset') => {
     if (!channelRef) return;
     channelRef.postMessage({ type: 'poll-command', command });
@@ -79,16 +105,36 @@ export function PollResultsPage() {
     return (pollState.votes[optionId] / totalVotes) * 100;
   }, [pollState.votes, getTotalVotes]);
 
-  // Find winner(s) - only when poll is finished
   const totalVotes = getTotalVotes();
   const maxVotes = Math.max(...Object.values(pollState.votes), 0);
-  const winnerIds = pollState.finished && totalVotes > 0
-    ? pollState.options
-        .filter(opt => pollState.votes[opt.id] === maxVotes && maxVotes > 0)
-        .map(opt => opt.id)
-    : [];
 
-  // Get timer CSS classes based on remaining time
+  // Determine if poll is active
+  const isPollActive = pollState.isRunning || pollState.finished;
+
+  // Serialize options to string for stable comparison in useMemo
+  const pollOptionsKey = JSON.stringify(pollState.options);
+  const setupOptionsKey = JSON.stringify(setupConfig?.options || []);
+
+  // SIMPLE LOGIC: Use pollState.options when poll is active, otherwise use setupConfig
+  const displayOptions = useMemo<PollOption[]>(() => {
+    if (isPollActive && pollState.options.length > 0) {
+      return pollState.options;
+    }
+    if (setupConfig?.options && setupConfig.options.length > 0) {
+      return setupConfig.options;
+    }
+    return DEFAULT_OPTIONS;
+    // Use serialized keys for stable dependency comparison
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPollActive, pollOptionsKey, setupOptionsKey]);
+
+  const winnerIds = useMemo(() => {
+    if (!pollState.finished || totalVotes === 0) return [];
+    return displayOptions
+      .filter(opt => pollState.votes[opt.id] === maxVotes && maxVotes > 0)
+      .map(opt => opt.id);
+  }, [pollState.finished, pollState.votes, displayOptions, totalVotes, maxVotes]);
+
   const getTimerClasses = () => {
     if (!pollState.isRunning) return 'text-slate-400';
     if (pollState.timeLeft <= 5) return 'timer-critical';
@@ -96,7 +142,6 @@ export function PollResultsPage() {
     return 'text-tiktok-cyan';
   };
 
-  // Get status display
   const getStatusDisplay = () => {
     if (pollState.isRunning) {
       return { text: 'Em Andamento', className: 'bg-green-500/20 text-green-400 border-green-500 animate-pulse' };
@@ -108,31 +153,15 @@ export function PollResultsPage() {
   };
 
   const status = getStatusDisplay();
-
-  // Determine if poll is active (running or finished with data)
-  const isPollActive = pollState.isRunning || pollState.finished || pollState.options.length > 0;
-
-  // Use poll state options if active, otherwise use setup config or default
-  const displayOptions: PollOption[] = isPollActive && pollState.options.length > 0
-    ? pollState.options 
-    : setupConfig?.options || [
-        { id: 1, text: 'Sim' },
-        { id: 2, text: 'Não' },
-      ];
-
-  // Get display timer - use poll timer if active, otherwise setup config
   const displayTimer = isPollActive ? pollState.timer : (setupConfig?.timer || 30);
-  
-  // Get display question
   const displayQuestion = isPollActive ? pollState.question : (setupConfig?.question || 'Votar agora!');
 
-  if (isWaiting && pollState.options.length === 0) {
+  if (isWaiting && !setupConfig && pollState.options.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col p-5">
         <div className="text-center mb-5">
           <h1 className="text-2xl font-bold text-white">📊 Resultados da Enquete</h1>
         </div>
-
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center text-slate-400">
             <div className="text-6xl mb-4 animate-spin">🔄</div>
