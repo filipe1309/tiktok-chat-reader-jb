@@ -13,12 +13,10 @@ export function PollPage() {
     options: PollOption[];
     timer: number;
   }>({
-    question: 'Vote agora!',
+    question: 'Votar agora!',
     options: [
-      { id: 1, text: '1' },
-      { id: 2, text: '2' },
-      { id: 3, text: '3' },
-      { id: 4, text: '4' },
+      { id: 1, text: 'Sim' },
+      { id: 2, text: 'Não' },
     ],
     timer: 30,
   });

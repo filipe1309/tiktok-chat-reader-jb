@@ -116,17 +116,15 @@ export function PollResultsPage() {
   const displayOptions: PollOption[] = isPollActive && pollState.options.length > 0
     ? pollState.options 
     : setupConfig?.options || [
-        { id: 1, text: '1' },
-        { id: 2, text: '2' },
-        { id: 3, text: '3' },
-        { id: 4, text: '4' },
+        { id: 1, text: 'Sim' },
+        { id: 2, text: 'Não' },
       ];
 
   // Get display timer - use poll timer if active, otherwise setup config
   const displayTimer = isPollActive ? pollState.timer : (setupConfig?.timer || 30);
   
   // Get display question
-  const displayQuestion = isPollActive ? pollState.question : (setupConfig?.question || '');
+  const displayQuestion = isPollActive ? pollState.question : (setupConfig?.question || 'Votar agora!');
 
   if (isWaiting && pollState.options.length === 0) {
     return (

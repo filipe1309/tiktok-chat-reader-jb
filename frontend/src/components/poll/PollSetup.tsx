@@ -1,11 +1,27 @@
 import { useState, useEffect } from 'react';
 
+// Default options for the poll (fixed 8 options)
+const DEFAULT_OPTIONS = [
+  'Sim',
+  'Não',
+  'Correr',
+  'Pular',
+  'Laboratório',
+  '',
+  '',
+  '',
+];
+
+// Default selected options (1 and 2 - "Sim" and "Não")
+const DEFAULT_SELECTED = [true, true, false, false, false, false, false, false];
+
 interface PollSetupProps {
   onStart: (question: string, options: string[], timer: number) => void;
   onChange?: (question: string, options: string[], timer: number) => void;
   disabled?: boolean;
   initialQuestion?: string;
   initialOptions?: string[];
+  initialSelectedOptions?: boolean[];
   initialTimer?: number;
   showStartButton?: boolean;
 }
@@ -14,14 +30,15 @@ export function PollSetup({
   onStart, 
   onChange,
   disabled = false,
-  initialQuestion = '',
-  initialOptions,
+  initialQuestion = 'Votar agora!',
+  initialOptions = DEFAULT_OPTIONS,
+  initialSelectedOptions = DEFAULT_SELECTED,
   initialTimer = 30,
   showStartButton = true
 }: PollSetupProps) {
   const [question, setQuestion] = useState(initialQuestion);
-  const [numOptions, setNumOptions] = useState(initialOptions?.length || 4);
-  const [options, setOptions] = useState<string[]>(initialOptions || ['', '', '', '']);
+  const [options, setOptions] = useState<string[]>(initialOptions);
+  const [selectedOptions, setSelectedOptions] = useState<boolean[]>(initialSelectedOptions);
   const [timer, setTimer] = useState(initialTimer);
 
   // Update internal state when initial values change
@@ -32,33 +49,35 @@ export function PollSetup({
   useEffect(() => {
     if (initialOptions) {
       setOptions(initialOptions);
-      setNumOptions(initialOptions.length);
     }
   }, [initialOptions]);
+
+  useEffect(() => {
+    if (initialSelectedOptions) {
+      setSelectedOptions(initialSelectedOptions);
+    }
+  }, [initialSelectedOptions]);
 
   useEffect(() => {
     if (initialTimer) setTimer(initialTimer);
   }, [initialTimer]);
 
-  // Auto-update options when numOptions changes
-  useEffect(() => {
-    setOptions(prev => {
-      const newOptions = [...prev];
-      while (newOptions.length < numOptions) {
-        newOptions.push('');
-      }
-      return newOptions.slice(0, numOptions);
-    });
-  }, [numOptions]);
+  // Get the selected options for the poll
+  const getSelectedPollOptions = () => {
+    return options
+      .map((opt, idx) => ({ text: opt.trim() || (idx + 1).toString(), index: idx, selected: selectedOptions[idx] }))
+      .filter(opt => opt.selected)
+      .map(opt => opt.text);
+  };
 
   // Notify parent of changes
   useEffect(() => {
     if (onChange) {
-      const finalOptions = options.map((opt, idx) => opt.trim() || (idx + 1).toString());
-      const questionText = question.trim() || 'Vote agora!';
-      onChange(questionText, finalOptions, timer);
+      const selectedPollOptions = getSelectedPollOptions();
+      const questionText = question.trim() || 'Votar agora!';
+      onChange(questionText, selectedPollOptions, timer);
     }
-  }, [question, options, timer, onChange]);
+  }, [question, options, selectedOptions, timer, onChange]);
 
   const updateOption = (index: number, value: string) => {
     setOptions(prev => {
@@ -68,15 +87,23 @@ export function PollSetup({
     });
   };
 
-  const handleStart = () => {
-    // Use option text or default to number if empty
-    const finalOptions = options.map((opt, idx) => opt.trim() || (idx + 1).toString());
-    const questionText = question.trim() || 'Vote agora!';
-    onStart(questionText, finalOptions, timer);
+  const toggleOption = (index: number) => {
+    setSelectedOptions(prev => {
+      const newSelected = [...prev];
+      newSelected[index] = !newSelected[index];
+      return newSelected;
+    });
   };
 
-  // At least 2 options available (either filled or will use default numbers)
-  const isValid = numOptions >= 2;
+  const handleStart = () => {
+    const selectedPollOptions = getSelectedPollOptions();
+    const questionText = question.trim() || 'Votar agora!';
+    onStart(questionText, selectedPollOptions, timer);
+  };
+
+  // At least 2 options must be selected
+  const selectedCount = selectedOptions.filter(Boolean).length;
+  const isValid = selectedCount >= 2;
 
   return (
     <div className="space-y-6">
@@ -97,39 +124,6 @@ export function PollSetup({
 
       {/* Configuration Row */}
       <div className="flex flex-wrap gap-4 items-end">
-        <div className="flex-1 min-w-[180px]">
-          <label className="block text-sm font-medium text-slate-300 mb-2">
-            Número de Opções
-          </label>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setNumOptions(prev => Math.max(2, prev - 1))}
-              disabled={disabled || numOptions <= 2}
-              className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              -1
-            </button>
-            <input
-              type="number"
-              value={numOptions}
-              onChange={(e) => setNumOptions(Math.min(10, Math.max(2, Number(e.target.value))))}
-              min={2}
-              max={10}
-              className="input-field flex-1 text-center"
-              disabled={disabled}
-            />
-            <button
-              type="button"
-              onClick={() => setNumOptions(prev => Math.min(10, prev + 1))}
-              disabled={disabled || numOptions >= 10}
-              className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              +1
-            </button>
-          </div>
-        </div>
-
         <div className="flex-1 min-w-[200px]">
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Tempo (segundos)
@@ -162,20 +156,46 @@ export function PollSetup({
             </button>
           </div>
         </div>
+        
+        <div className="flex items-center gap-2 text-sm text-slate-400">
+          <span className="px-3 py-2 bg-slate-800 rounded-lg">
+            {selectedCount} opções selecionadas
+          </span>
+        </div>
       </div>
 
-      {/* Options Grid */}
+      {/* Options Grid with Checkboxes */}
       <div>
         <label className="block text-sm font-medium text-slate-300 mb-2">
-          Opções (espectadores digitam o número para votar)
+          Opções (marque as opções que deseja incluir na enquete)
         </label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {options.map((option, index) => (
             <div 
               key={index} 
-              className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700/50"
+              className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                selectedOptions[index] 
+                  ? 'bg-purple-900/30 border-purple-500/50' 
+                  : 'bg-slate-900/50 border-slate-700/50'
+              }`}
             >
-              <span className="w-9 h-9 flex items-center justify-center bg-gradient-to-br from-purple-600 to-purple-400 rounded-full font-bold text-white text-lg flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => toggleOption(index)}
+                disabled={disabled}
+                className={`w-6 h-6 flex items-center justify-center rounded border-2 transition-all flex-shrink-0 ${
+                  selectedOptions[index]
+                    ? 'bg-purple-600 border-purple-500 text-white'
+                    : 'bg-slate-800 border-slate-600 text-transparent hover:border-slate-500'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {selectedOptions[index] && '✓'}
+              </button>
+              <span className={`w-9 h-9 flex items-center justify-center rounded-full font-bold text-lg flex-shrink-0 ${
+                selectedOptions[index]
+                  ? 'bg-gradient-to-br from-purple-600 to-purple-400 text-white'
+                  : 'bg-slate-700 text-slate-400'
+              }`}>
                 {index + 1}
               </span>
               <input
@@ -189,6 +209,11 @@ export function PollSetup({
             </div>
           ))}
         </div>
+        {selectedCount < 2 && (
+          <p className="text-red-400 text-sm mt-2">
+            ⚠️ Selecione pelo menos 2 opções para a enquete
+          </p>
+        )}
       </div>
 
       {showStartButton && (
