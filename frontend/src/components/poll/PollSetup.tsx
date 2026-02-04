@@ -30,6 +30,7 @@ interface PollSetupProps {
   initialSelectedOptions?: boolean[];
   initialTimer?: number;
   showStartButton?: boolean;
+  externalConfig?: { question: string; options: OptionWithId[]; timer: number } | null;
 }
 
 export function PollSetup({ 
@@ -40,13 +41,37 @@ export function PollSetup({
   initialOptions = DEFAULT_OPTIONS,
   initialSelectedOptions = DEFAULT_SELECTED,
   initialTimer = 30,
-  showStartButton = true
+  showStartButton = true,
+  externalConfig = null
 }: PollSetupProps) {
   const [question, setQuestion] = useState(initialQuestion);
   const [options, setOptions] = useState<string[]>(initialOptions);
   const [selectedOptions, setSelectedOptions] = useState<boolean[]>(initialSelectedOptions);
   const [timer, setTimer] = useState(initialTimer);
   const hasSentInitialChange = useRef(false);
+
+  // Update state when externalConfig changes (from popup edit)
+  useEffect(() => {
+    if (externalConfig) {
+      console.log('[PollSetup] Received external config update:', externalConfig);
+      setQuestion(externalConfig.question);
+      setTimer(externalConfig.timer);
+      
+      // Rebuild options and selected arrays from externalConfig.options
+      const newOptions = [...DEFAULT_OPTIONS];
+      const newSelected = DEFAULT_SELECTED.map(() => false);
+      
+      externalConfig.options.forEach(opt => {
+        if (opt.id >= 1 && opt.id <= 8) {
+          newOptions[opt.id - 1] = opt.text;
+          newSelected[opt.id - 1] = true;
+        }
+      });
+      
+      setOptions(newOptions);
+      setSelectedOptions(newSelected);
+    }
+  }, [externalConfig]);
 
   // Get the selected options for the poll - returns objects with id (1-based) and text
   const getSelectedPollOptions = (currentOptions?: string[], currentSelected?: boolean[]) => {

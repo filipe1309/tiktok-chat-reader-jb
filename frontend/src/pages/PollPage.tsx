@@ -3,13 +3,21 @@ import { Link } from 'react-router-dom';
 import { useTikTokConnection, usePoll } from '@/hooks';
 import { ConnectionForm, PollSetup, PollResults, VoteLog } from '@/components';
 import type { ChatMessage, PollOption } from '@/types';
+import type { SetupConfig } from '@/hooks/usePoll';
 
 export function PollPage() {
-  const { pollState, voteLog, startPoll, stopPoll, resetPoll, processVote, clearVoteLog, getTotalVotes, getPercentage, openResultsPopup, broadcastSetupConfig, setConnectionStatus } = usePoll();
+  const { pollState, voteLog, startPoll, stopPoll, resetPoll, processVote, clearVoteLog, getTotalVotes, getPercentage, openResultsPopup, broadcastSetupConfig, setConnectionStatus, onConfigUpdate } = usePoll();
   
   // Track current setup configuration for preview
   // Start with null to let PollSetup component initialize via onChange
   const [setupConfig, setSetupConfig] = useState<{
+    question: string;
+    options: PollOption[];
+    timer: number;
+  } | null>(null);
+  
+  // Track external config updates from popup
+  const [externalConfig, setExternalConfig] = useState<{
     question: string;
     options: PollOption[];
     timer: number;
@@ -21,6 +29,15 @@ export function PollPage() {
     pollStateRef.current = pollState;
   }, [pollState]);
 
+  // Register callback to receive config updates from popup
+  useEffect(() => {
+    onConfigUpdate((config: SetupConfig) => {
+      console.log('[PollPage] Received config update from popup:', config);
+      setExternalConfig(config);
+      setSetupConfig(config);
+    });
+  }, [onConfigUpdate]);
+
   const handleSetupChange = useCallback((question: string, options: PollOption[], timer: number) => {
     const newConfig = {
       question,
@@ -28,6 +45,8 @@ export function PollPage() {
       timer,
     };
     setSetupConfig(newConfig);
+    // Clear external config when local changes are made
+    setExternalConfig(null);
     // Always update the setup config ref, regardless of poll state
     // This ensures request-state always has the latest config
     broadcastSetupConfig(newConfig);
@@ -109,6 +128,7 @@ export function PollPage() {
             onChange={handleSetupChange}
             disabled={!connection.isConnected || pollState.isRunning}
             showStartButton={false}
+            externalConfig={externalConfig}
           />
         </div>
 

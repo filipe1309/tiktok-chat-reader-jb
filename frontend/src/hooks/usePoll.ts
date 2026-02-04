@@ -36,6 +36,7 @@ interface UsePollReturn {
   openResultsPopup: () => void;
   broadcastSetupConfig: (config: SetupConfig) => void;
   setConnectionStatus: (isConnected: boolean) => void;
+  onConfigUpdate: (callback: (config: SetupConfig) => void) => void;
 }
 
 const initialPollState: PollState = {
@@ -75,6 +76,12 @@ export function usePoll(): UsePollReturn {
     stop: () => void;
     reset: () => void;
   } | null>(null);
+  const configUpdateCallbackRef = useRef<((config: SetupConfig) => void) | null>(null);
+
+  // Register callback for config updates from popup
+  const onConfigUpdate = useCallback((callback: (config: SetupConfig) => void) => {
+    configUpdateCallbackRef.current = callback;
+  }, []);
 
   // Keep pollStateRef in sync with pollState
   useEffect(() => {
@@ -134,6 +141,15 @@ export function usePoll(): UsePollReturn {
           const command = event.data.command as 'start' | 'stop' | 'reset';
           if (commandHandlersRef.current) {
             commandHandlersRef.current[command]();
+          }
+        } else if (event.data.type === 'config-update') {
+          // Handle config updates from popup
+          const config = event.data.config as SetupConfig;
+          console.log('[usePoll] Received config-update from popup:', config);
+          setupConfigRef.current = config;
+          // Notify the callback (PollPage) about the config change
+          if (configUpdateCallbackRef.current) {
+            configUpdateCallbackRef.current(config);
           }
         }
       };
@@ -498,5 +514,6 @@ export function usePoll(): UsePollReturn {
     openResultsPopup,
     broadcastSetupConfig,
     setConnectionStatus,
+    onConfigUpdate,
   };
 }
