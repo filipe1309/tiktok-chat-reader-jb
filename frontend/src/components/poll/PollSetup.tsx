@@ -15,9 +15,15 @@ const DEFAULT_OPTIONS = [
 // Default selected options (1 and 2 - "Sim" and "Não")
 const DEFAULT_SELECTED = [true, true, false, false, false, false, false, false];
 
+// Option with preserved original ID
+interface OptionWithId {
+  id: number;
+  text: string;
+}
+
 interface PollSetupProps {
-  onStart: (question: string, options: string[], timer: number) => void;
-  onChange?: (question: string, options: string[], timer: number) => void;
+  onStart: (question: string, options: OptionWithId[], timer: number) => void;
+  onChange?: (question: string, options: OptionWithId[], timer: number) => void;
   disabled?: boolean;
   initialQuestion?: string;
   initialOptions?: string[];
@@ -42,28 +48,34 @@ export function PollSetup({
   const [timer, setTimer] = useState(initialTimer);
   const hasSentInitialChange = useRef(false);
 
-  // Get the selected options for the poll
-  const getSelectedPollOptions = () => {
-    const result = options
+  // Get the selected options for the poll - returns objects with id (1-based) and text
+  const getSelectedPollOptions = (currentOptions?: string[], currentSelected?: boolean[]) => {
+    const opts = currentOptions ?? options;
+    const selected = currentSelected ?? selectedOptions;
+    const result = opts
       .map((opt, idx) => ({ 
         text: opt.trim(), // Don't use index as fallback - keep empty if not filled
-        index: idx, 
-        selected: selectedOptions[idx] 
+        id: idx + 1, // 1-based id to preserve original position
+        selected: selected[idx] 
       }))
-      .filter(opt => opt.selected && opt.text) // Only include selected AND non-empty options
-      .map(opt => opt.text);
+      .filter(opt => opt.selected && opt.text); // Only include selected AND non-empty options
     
     return result;
+  };
+
+  // Get options with their original IDs for onChange (to preserve indices)
+  const getSelectedPollOptionsWithIds = (currentOptions?: string[], currentSelected?: boolean[]) => {
+    return getSelectedPollOptions(currentOptions, currentSelected).map(opt => ({ id: opt.id, text: opt.text }));
   };
 
   // Send initial onChange immediately on mount
   useEffect(() => {
     console.log('[PollSetup] Mount useEffect - hasSentInitialChange:', hasSentInitialChange.current);
     if (!hasSentInitialChange.current && onChange) {
-      const selectedPollOptions = getSelectedPollOptions();
+      const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
       const questionText = question.trim() || 'Votar agora!';
-      console.log('[PollSetup] Sending initial onChange with options:', selectedPollOptions);
-      onChange(questionText, selectedPollOptions, timer);
+      console.log('[PollSetup] Sending initial onChange with options:', selectedPollOptionsWithIds);
+      onChange(questionText, selectedPollOptionsWithIds, timer);
       hasSentInitialChange.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -73,43 +85,35 @@ export function PollSetup({
   // Only manual user actions (updateOption, toggleOption) will trigger updates now
 
   const updateOption = (index: number, value: string) => {
-    setOptions(prev => {
-      const newOptions = [...prev];
-      newOptions[index] = value;
-      return newOptions;
-    });
+    const newOptions = [...options];
+    newOptions[index] = value;
+    setOptions(newOptions);
     
-    // Notify parent of change after state update
+    // Notify parent of change with new state
     if (onChange && hasSentInitialChange.current) {
-      setTimeout(() => {
-        const selectedPollOptions = getSelectedPollOptions();
-        const questionText = question.trim() || 'Votar agora!';
-        onChange(questionText, selectedPollOptions, timer);
-      }, 0);
+      const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds(newOptions, selectedOptions);
+      const questionText = question.trim() || 'Votar agora!';
+      onChange(questionText, selectedPollOptionsWithIds, timer);
     }
   };
 
   const toggleOption = (index: number) => {
-    setSelectedOptions(prev => {
-      const newSelected = [...prev];
-      newSelected[index] = !newSelected[index];
-      return newSelected;
-    });
+    const newSelected = [...selectedOptions];
+    newSelected[index] = !newSelected[index];
+    setSelectedOptions(newSelected);
     
-    // Notify parent of change after state update
+    // Notify parent of change with new state
     if (onChange && hasSentInitialChange.current) {
-      setTimeout(() => {
-        const selectedPollOptions = getSelectedPollOptions();
-        const questionText = question.trim() || 'Votar agora!';
-        onChange(questionText, selectedPollOptions, timer);
-      }, 0);
+      const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds(options, newSelected);
+      const questionText = question.trim() || 'Votar agora!';
+      onChange(questionText, selectedPollOptionsWithIds, timer);
     }
   };
 
   const handleStart = () => {
-    const selectedPollOptions = getSelectedPollOptions();
+    const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
     const questionText = question.trim() || 'Votar agora!';
-    onStart(questionText, selectedPollOptions, timer);
+    onStart(questionText, selectedPollOptionsWithIds, timer);
   };
 
   // At least 2 options must be selected

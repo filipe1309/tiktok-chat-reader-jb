@@ -21,10 +21,10 @@ export function PollPage() {
     pollStateRef.current = pollState;
   }, [pollState]);
 
-  const handleSetupChange = useCallback((question: string, options: string[], timer: number) => {
+  const handleSetupChange = useCallback((question: string, options: PollOption[], timer: number) => {
     const newConfig = {
       question,
-      options: options.map((text, index) => ({ id: index + 1, text })),
+      options, // Options already have their original IDs preserved
       timer,
     };
     setSetupConfig(newConfig);
@@ -52,7 +52,7 @@ export function PollPage() {
     connection.connect(uniqueId, { enableExtendedGiftInfo: false });
   };
 
-  const handleStartPoll = (question: string, options: string[], timer: number) => {
+  const handleStartPoll = (question: string, options: PollOption[], timer: number) => {
     startPoll(question, options, timer);
   };
 
@@ -118,7 +118,7 @@ export function PollPage() {
             <button 
               onClick={() => handleStartPoll(
                 currentSetupConfig.question,
-                currentSetupConfig.options.map((o) => o.text),
+                currentSetupConfig.options,
                 currentSetupConfig.timer
               )}
               disabled={!connection.isConnected || pollState.isRunning}

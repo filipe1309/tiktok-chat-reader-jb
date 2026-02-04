@@ -25,7 +25,7 @@ export interface SetupConfig {
 interface UsePollReturn {
   pollState: PollState;
   voteLog: VoteEntry[];
-  startPoll: (question: string, options: string[], timer?: number) => void;
+  startPoll: (question: string, options: PollOption[], timer?: number) => void;
   stopPoll: () => void;
   resetPoll: () => void;
   processVote: (message: ChatMessage) => void;
@@ -220,18 +220,16 @@ export function usePoll(): UsePollReturn {
     };
   }, []);
 
-  const startPoll = useCallback((question: string, options: string[], timer = DEFAULT_TIMER) => {
+  const startPoll = useCallback((question: string, options: PollOption[], timer = DEFAULT_TIMER) => {
     console.log('[usePoll] startPoll called with options:', options);
     // Clear any existing timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
 
-    const pollOptions: PollOption[] = options.map((text, index) => ({
-      id: index + 1,
-      text,
-    }));
-const initialVotes: Record<number, number> = {};
+    // Options already have their IDs preserved from PollSetup
+    const pollOptions: PollOption[] = options;
+    const initialVotes: Record<number, number> = {};
     pollOptions.forEach(opt => {
       initialVotes[opt.id] = 0;
     });
@@ -397,9 +395,15 @@ const initialVotes: Record<number, number> = {};
       const comment = message.comment.trim();
       const voteNumber = parseInt(comment);
 
-      // Check if valid vote number
-      if (isNaN(voteNumber) || voteNumber < 1 || voteNumber > prev.options.length) {
+      // Check if valid vote number - must match an existing option ID
+      if (isNaN(voteNumber)) {
         return prev;
+      }
+
+      // Find the option with this ID (options preserve their original IDs)
+      const option = prev.options.find(o => o.id === voteNumber);
+      if (!option) {
+        return prev; // Vote number doesn't match any option
       }
 
       // Check if user already voted
@@ -415,17 +419,14 @@ const initialVotes: Record<number, number> = {};
       newVotes[voteNumber] = (newVotes[voteNumber] || 0) + 1;
 
       // Add to vote log
-      const option = prev.options.find(o => o.id === voteNumber);
-      if (option) {
-        const entry: VoteEntry = {
-          id: `${message.uniqueId}-${Date.now()}`,
-          user: message,
-          optionId: voteNumber,
-          optionText: option.text,
-          timestamp: new Date(),
-        };
-        setVoteLog(log => [...log.slice(-99), entry]); // Keep last 100 entries
-      }
+      const entry: VoteEntry = {
+        id: `${message.uniqueId}-${Date.now()}`,
+        user: message,
+        optionId: voteNumber,
+        optionText: option.text,
+        timestamp: new Date(),
+      };
+      setVoteLog(log => [...log.slice(-99), entry]); // Keep last 100 entries
 
       return {
         ...prev,
@@ -473,7 +474,7 @@ const initialVotes: Record<number, number> = {};
         if (setupConfigRef.current) {
           startPoll(
             setupConfigRef.current.question,
-            setupConfigRef.current.options.map(o => o.text),
+            setupConfigRef.current.options,
             setupConfigRef.current.timer
           );
         }
