@@ -11,20 +11,20 @@ const menuCards: MenuCard[] = [
   {
     to: '/chat',
     icon: '💬',
-    title: 'Chat Reader',
-    description: 'View live chat messages, gifts, and events in real-time',
+    title: 'Leitor de Chat',
+    description: 'Visualize mensagens do chat, presentes e eventos em tempo real',
   },
   {
     to: '/overlay',
     icon: '🎬',
-    title: 'Overlay URL',
-    description: 'Generate an overlay URL for OBS or streaming software',
+    title: 'URL de Overlay',
+    description: 'Gere uma URL de overlay para OBS ou software de streaming',
   },
   {
     to: '/poll',
     icon: '🗳️',
-    title: 'Live Poll',
-    description: 'Create interactive polls for your live audience',
+    title: 'Enquete ao Vivo',
+    description: 'Crie enquetes interativas para sua audiência ao vivo',
   },
 ];
 
@@ -33,18 +33,18 @@ export function HomePage() {
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-tiktok-red to-tiktok-cyan bg-clip-text text-transparent mb-4">
-          TikTok LIVE Tools
+          Ferramentas TikTok LIVE
         </h1>
         <p className="text-slate-400 max-w-2xl mx-auto">
-          A collection of tools for{' '}
+          Uma coleção de ferramentas para{' '}
           <a href="https://www.tiktok.com/live" className="text-tiktok-cyan hover:underline">
             TikTok LIVE
           </a>{' '}
-          utilizing{' '}
+          utilizando{' '}
           <a href="https://github.com/zerodytrash/TikTok-Live-Connector" className="text-tiktok-cyan hover:underline">
             TikTok-Live-Connector
           </a>{' '}
-          and{' '}
+          e{' '}
           <a href="https://socket.io/" className="text-tiktok-cyan hover:underline">
             Socket.IO
           </a>.

@@ -10,8 +10,8 @@ export function Header() {
               <span className="text-white font-bold text-lg">T</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">TikTok LIVE Tools</h1>
-              <p className="text-xs text-slate-400">Real-time chat & events</p>
+              <h1 className="text-xl font-bold text-white">Ferramentas TikTok LIVE</h1>
+              <p className="text-xs text-slate-400">Chat e eventos em tempo real</p>
             </div>
           </Link>
           
@@ -20,7 +20,7 @@ export function Header() {
               to="/chat" 
               className="text-slate-300 hover:text-white transition-colors"
             >
-              Chat Reader
+              Leitor de Chat
             </Link>
             <Link 
               to="/overlay" 
@@ -32,7 +32,7 @@ export function Header() {
               to="/poll" 
               className="text-slate-300 hover:text-white transition-colors"
             >
-              Live Poll
+              Enquete ao Vivo
             </Link>
           </nav>
         </div>
