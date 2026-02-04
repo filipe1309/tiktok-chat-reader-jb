@@ -226,8 +226,31 @@ export function PollResultsPage() {
         </div>
 
         {/* Question */}
-        <div className="text-center py-4 px-6 bg-purple-500/10 rounded-xl border-l-4 border-purple-500">
-          <h3 className="text-2xl font-bold text-white">{displayQuestion || 'Vote agora!'}</h3>
+        <div className="relative overflow-hidden bg-purple-500/10 rounded-xl border-l-4 border-purple-500">
+          {/* Animated Timer Bar */}
+          {pollState.isRunning && pollState.timer > 0 && (
+            <div 
+              className={`absolute bottom-0 left-0 h-1.5 transition-all duration-1000 ease-linear ${
+                pollState.timeLeft <= 5 
+                  ? 'bg-gradient-to-r from-red-600 to-red-400 animate-pulse' 
+                  : pollState.timeLeft <= 10 
+                    ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' 
+                    : 'bg-gradient-to-r from-green-500 to-tiktok-cyan'
+              }`}
+              style={{ 
+                width: `${(pollState.timeLeft / pollState.timer) * 100}%`,
+              }}
+            />
+          )}
+          {/* Static bar when not running */}
+          {!pollState.isRunning && (
+            <div 
+              className="absolute bottom-0 left-0 h-1.5 w-full bg-gradient-to-r from-purple-600/50 to-purple-400/50"
+            />
+          )}
+          <div className="text-center py-4 px-6">
+            <h3 className="text-2xl font-bold text-white">{displayQuestion || 'Vote agora!'}</h3>
+          </div>
         </div>
 
         {/* Results */}
