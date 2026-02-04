@@ -118,24 +118,25 @@ export function PollSetup({
 
   return (
     <div className="space-y-6">
-      {/* Question Input */}
-      <div>
-        <label className="block text-sm font-medium text-slate-300 mb-2">
-          Pergunta da Enquete
-        </label>
-        <input
-          type="text"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Digite sua pergunta aqui..."
-          className="input-field w-full"
-          disabled={disabled}
-        />
-      </div>
-
-      {/* Configuration Row */}
+      {/* Question and Timer Row */}
       <div className="flex flex-wrap gap-4 items-end">
-        <div className="flex-1 min-w-[200px]">
+        {/* Question Input */}
+        <div className="flex-1 min-w-[300px]">
+          <label className="block text-sm font-medium text-slate-300 mb-2">
+            Pergunta da Enquete
+          </label>
+          <input
+            type="text"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Digite sua pergunta aqui..."
+            className="input-field w-full"
+            disabled={disabled}
+          />
+        </div>
+
+        {/* Timer */}
+        <div className="min-w-[200px]">
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Tempo (segundos)
           </label>
