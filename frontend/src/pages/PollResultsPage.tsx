@@ -226,7 +226,15 @@ export function PollResultsPage() {
         </div>
 
         {/* Question */}
-        <div className="relative overflow-hidden bg-purple-500/10 rounded-xl border-l-4 border-purple-500">
+        <div className={`relative overflow-hidden rounded-xl border-l-4 transition-all duration-500 ${
+          pollState.isRunning
+            ? pollState.timeLeft <= 5
+              ? 'bg-red-500/20 border-red-500 animate-pulse shadow-lg shadow-red-500/20'
+              : pollState.timeLeft <= 10
+                ? 'bg-yellow-500/15 border-yellow-500 shadow-lg shadow-yellow-500/10'
+                : 'bg-green-500/10 border-green-500'
+            : 'bg-purple-500/10 border-purple-500'
+        }`}>
           {/* Animated Timer Bar */}
           {pollState.isRunning && pollState.timer > 0 && (
             <div 
@@ -249,7 +257,15 @@ export function PollResultsPage() {
             />
           )}
           <div className="text-center py-4 px-6">
-            <h3 className="text-2xl font-bold text-white">{displayQuestion || 'Vote agora!'}</h3>
+            <h3 className={`text-2xl font-bold transition-colors duration-500 ${
+              pollState.isRunning
+                ? pollState.timeLeft <= 5
+                  ? 'text-red-300'
+                  : pollState.timeLeft <= 10
+                    ? 'text-yellow-300'
+                    : 'text-white'
+                : 'text-white'
+            }`}>{displayQuestion || 'Vote agora!'}</h3>
           </div>
         </div>
 
