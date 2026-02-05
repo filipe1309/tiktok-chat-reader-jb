@@ -285,7 +285,7 @@ export function PollResultsPage() {
 
   if (isWaiting && !setupConfig && pollState.options.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col p-5">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-[#e90048] flex flex-col p-5">
         <div className="text-center mb-5">
           <h1 className="text-4xl font-bold text-white">📊 Resultados da Enquete</h1>
         </div>
@@ -300,7 +300,7 @@ export function PollResultsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col p-5 relative">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-[#e90048] flex flex-col p-5 relative">
       {/* Disconnected Modal with Blur Background */}
       {!isConnected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
