@@ -155,26 +155,6 @@ export function PollResultsPage() {
       .map(opt => opt.id);
   }, [pollState.finished, pollState.votes, displayOptions, totalVotes, maxVotes]);
 
-  const getTimerClasses = () => {
-    if (!pollState.isRunning) return 'text-slate-400';
-    if (pollState.timeLeft <= 5) return 'timer-critical';
-    if (pollState.timeLeft <= 10) return 'timer-warning';
-    return 'text-tiktok-cyan';
-  };
-
-  const getStatusDisplay = () => {
-    if (pollState.isRunning) {
-      return { text: 'Em Andamento', className: 'bg-green-500/20 text-green-400 border-green-500 animate-pulse' };
-    }
-    if (pollState.finished) {
-      return { text: 'Finalizada', className: 'bg-blue-500/20 text-blue-400 border-blue-500' };
-    }
-    return { text: 'Aguardando', className: 'bg-slate-500/20 text-slate-400 border-slate-500' };
-  };
-
-  const status = getStatusDisplay();
-  // Use pollState values ONLY when running, otherwise show setupConfig for live preview
-  const displayTimer = pollState.isRunning ? pollState.timer : (setupConfig?.timer || 30);
   const displayQuestion = pollState.isRunning ? pollState.question : (setupConfig?.question || 'Votar agora!');
 
   if (isWaiting && !setupConfig && pollState.options.length === 0) {
@@ -281,26 +261,6 @@ export function PollResultsPage() {
 
         {/* Results Section */}
         <div className="flex-1 space-y-3">
-          {/* Status Bar */}
-          <div className="flex items-center justify-around flex-wrap gap-2 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50">
-            <div className="text-center">
-              <span className="block text-[10px] text-slate-400">{pollState.isRunning ? 'Tempo Restante' : 'Tempo Configurado'}</span>
-              <span className={`font-mono text-xl font-bold ${getTimerClasses()}`}>
-                {pollState.isRunning ? `${pollState.timeLeft}s` : (displayTimer > 0 ? `${displayTimer}s` : '--')}
-              </span>
-            </div>
-            <div className="text-center">
-              <span className="block text-[10px] text-slate-400">Total de Votos</span>
-              <span className="font-bold text-purple-400 text-xl">{totalVotes}</span>
-            </div>
-            <div className="text-center">
-              <span className="block text-[10px] text-slate-400">Status</span>
-              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold border ${status.className}`}>
-                {status.text}
-              </span>
-            </div>
-          </div>
-
           {/* Question */}
           <div className={`relative overflow-hidden rounded-xl border-l-4 transition-all duration-500 ${
             pollState.isRunning
