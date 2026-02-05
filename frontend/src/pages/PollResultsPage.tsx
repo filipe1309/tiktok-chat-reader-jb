@@ -266,12 +266,12 @@ export function PollResultsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col p-5">
         <div className="text-center mb-5">
-          <h1 className="text-2xl font-bold text-white">📊 Resultados da Enquete</h1>
+          <h1 className="text-4xl font-bold text-white">📊 Resultados da Enquete</h1>
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center text-slate-400">
-            <div className="text-6xl mb-4 animate-spin">🔄</div>
-            <div className="text-xl">Aguardando dados da enquete...</div>
+            <div className="text-8xl mb-4 animate-spin">🔄</div>
+            <div className="text-3xl">Aguardando dados da enquete...</div>
           </div>
         </div>
       </div>
@@ -282,31 +282,31 @@ export function PollResultsPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col p-5">
       <div className="flex-1 text-center mb-5">
         {/* Control Buttons */}
-        <div className="flex items-center justify-center gap-3 p-4 bg-purple-500/10 rounded-xl border-2 border-purple-500/30">
+        <div className="flex items-center justify-center gap-5 p-6 bg-purple-500/10 rounded-xl border-2 border-purple-500/30">
           <button 
             onClick={() => sendCommand('start')}
             disabled={!isConnected || pollState.isRunning}
-            className="px-6 py-2 text-base font-bold rounded-xl bg-gradient-to-r from-green-400 to-blue-500 text-white hover:from-green-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-10 py-4 text-xl font-bold rounded-xl bg-gradient-to-r from-green-400 to-blue-500 text-white hover:from-green-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ▶️ Iniciar
           </button>
           <button 
             onClick={() => sendCommand('stop')}
             disabled={!pollState.isRunning}
-            className="px-6 py-2 text-base font-bold rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-10 py-4 text-xl font-bold rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ⏹️ Parar
           </button>
           <button 
             onClick={() => sendCommand('reset')}
-            className="px-6 py-2 text-base font-bold rounded-xl bg-slate-700 text-white hover:bg-slate-600 transition-all border border-slate-600"
+            className="px-10 py-4 text-xl font-bold rounded-xl bg-slate-700 text-white hover:bg-slate-600 transition-all border border-slate-600"
           >
             🔄 Reiniciar
           </button>
           <button 
             onClick={() => setIsEditing(!isEditing)}
             disabled={pollState.isRunning}
-            className={`px-6 py-2 text-base font-bold rounded-xl transition-all border disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`px-10 py-4 text-xl font-bold rounded-xl transition-all border disabled:opacity-50 disabled:cursor-not-allowed ${
               isEditing 
                 ? 'bg-tiktok-cyan/20 text-tiktok-cyan border-tiktok-cyan' 
                 : 'bg-slate-700 text-white hover:bg-slate-600 border-slate-600'
@@ -317,26 +317,26 @@ export function PollResultsPage() {
         </div>
       </div>
 
-      <div className="text-center mb-5">
-        <h1 className="text-2xl font-bold text-white">📊 Resultados da Enquete</h1>
+      <div className="text-center mb-6">
+        <h1 className="text-4xl font-bold text-white">📊 Resultados da Enquete</h1>
       </div>
 
       <div className="flex-1 space-y-5">
         {/* Status Bar */}
-        <div className="flex items-center justify-around flex-wrap gap-5 p-5 bg-slate-800/50 rounded-xl border border-slate-700/50">
+        <div className="flex items-center justify-around flex-wrap gap-8 p-8 bg-slate-800/50 rounded-xl border border-slate-700/50">
           <div className="text-center">
-            <span className="block text-sm text-slate-400 mb-1">{pollState.isRunning ? 'Tempo Restante' : 'Tempo Configurado'}</span>
-            <span className={`font-mono text-4xl font-bold ${getTimerClasses()}`}>
+            <span className="block text-lg text-slate-400 mb-2">{pollState.isRunning ? 'Tempo Restante' : 'Tempo Configurado'}</span>
+            <span className={`font-mono text-6xl font-bold ${getTimerClasses()}`}>
               {pollState.isRunning ? `${pollState.timeLeft}s` : (displayTimer > 0 ? `${displayTimer}s` : '--')}
             </span>
           </div>
           <div className="text-center">
-            <span className="block text-sm text-slate-400 mb-1">Total de Votos</span>
-            <span className="font-bold text-purple-400 text-4xl">{totalVotes}</span>
+            <span className="block text-lg text-slate-400 mb-2">Total de Votos</span>
+            <span className="font-bold text-purple-400 text-6xl">{totalVotes}</span>
           </div>
           <div className="text-center">
-            <span className="block text-sm text-slate-400 mb-1">Status</span>
-            <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold border ${status.className}`}>
+            <span className="block text-lg text-slate-400 mb-2">Status</span>
+            <span className={`inline-block px-6 py-3 rounded-full text-2xl font-bold border ${status.className}`}>
               {status.text}
             </span>
           </div>
@@ -418,8 +418,8 @@ export function PollResultsPage() {
               className="absolute bottom-0 left-0 h-1.5 w-full bg-gradient-to-r from-purple-600/50 to-purple-400/50"
             />
           )}
-          <div className="text-center py-4 px-6">
-            <h3 className={`text-2xl font-bold transition-colors duration-500 ${
+          <div className="text-center py-6 px-8">
+            <h3 className={`text-4xl font-bold transition-colors duration-500 ${
               pollState.isRunning
                 ? pollState.timeLeft <= 5
                   ? 'text-red-300'
@@ -501,26 +501,26 @@ export function PollResultsPage() {
                   />
                   
                   {/* Content */}
-                  <div className="relative flex items-center justify-between p-5">
-                    <div className="flex items-center gap-4">
-                      <span className={`w-12 h-12 flex items-center justify-center rounded-full font-bold text-white text-xl flex-shrink-0 ${
+                  <div className="relative flex items-center justify-between p-7">
+                    <div className="flex items-center gap-6">
+                      <span className={`w-16 h-16 flex items-center justify-center rounded-full font-bold text-white text-3xl flex-shrink-0 ${
                         isWinner 
                           ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-slate-900' 
                           : 'bg-gradient-to-br from-purple-600 to-purple-400'
                       }`}>
                         {option.id}
                       </span>
-                      <span className="font-semibold text-white text-xl">
+                      <span className="font-semibold text-white text-3xl">
                         {option.text}
                         {isWinner && <span className="ml-2">👑</span>}
                       </span>
                     </div>
                     
                     <div className="text-right flex-shrink-0">
-                      <span className={`font-bold text-xl ${isWinner ? 'text-yellow-400' : 'text-tiktok-cyan'}`}>
+                      <span className={`font-bold text-3xl ${isWinner ? 'text-yellow-400' : 'text-tiktok-cyan'}`}>
                         {votes} votos
                       </span>
-                      <span className="text-slate-400 text-lg ml-2">
+                      <span className="text-slate-400 text-2xl ml-3">
                         ({percentageFixed}%)
                       </span>
                     </div>
