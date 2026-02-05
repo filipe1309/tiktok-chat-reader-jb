@@ -197,7 +197,7 @@ export function PollSetup({
       <div className="flex flex-wrap gap-4 items-end">
         {/* Question Input */}
         <div className="flex-1 min-w-[300px]">
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-sm font-medium text-slate-300 mb-1">
             Pergunta da Enquete
           </label>
           <input
@@ -212,7 +212,7 @@ export function PollSetup({
 
         {/* Timer */}
         <div className="min-w-[200px]">
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-sm font-medium text-slate-300 mb-1">
             Tempo (segundos)
           </label>
           <div className="flex items-center gap-2">
@@ -243,17 +243,11 @@ export function PollSetup({
             </button>
           </div>
         </div>
-        
-        <div className="flex items-center gap-2 text-sm text-slate-400">
-          <span className="px-3 py-2 bg-slate-800 rounded-lg">
-            {selectedCount} opções selecionadas
-          </span>
-        </div>
       </div>
 
       {/* Options Grid with Checkboxes */}
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-2">
+        <label className="block text-sm font-medium text-slate-300 mb-1">
           Opções (marque as opções que deseja incluir na enquete)
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">

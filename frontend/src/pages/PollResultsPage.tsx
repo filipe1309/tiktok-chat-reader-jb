@@ -248,7 +248,6 @@ export function PollResultsPage() {
       <div className="flex-1 flex flex-col gap-4">
         {/* Setup Section - Above Results */}
         <div className="p-4 bg-slate-800/50 rounded-xl border border-tiktok-cyan/30">
-          <h3 className="text-lg font-bold text-tiktok-cyan mb-3">⚙️ Configuração</h3>
           <PollSetup
             onStart={() => {}} // Not used - we have separate control buttons
             onChange={handleSetupChange}
@@ -259,24 +258,24 @@ export function PollResultsPage() {
         </div>
 
         {/* Control Buttons */}
-        <div className="flex items-center justify-center gap-3 p-3 bg-purple-500/10 rounded-xl border-2 border-purple-500/30">
+        <div className="flex items-center justify-center gap-2 p-2 bg-purple-500/10 rounded-lg border border-purple-500/30">
           <button 
             onClick={() => sendCommand('start')}
             disabled={!isConnected || pollState.isRunning}
-            className="px-6 py-2 text-base font-bold rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-white hover:from-green-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-1 text-sm font-bold rounded-md bg-gradient-to-r from-green-400 to-blue-500 text-white hover:from-green-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ▶️ Iniciar
           </button>
           <button 
             onClick={() => sendCommand('stop')}
             disabled={!pollState.isRunning}
-            className="px-6 py-2 text-base font-bold rounded-lg bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-1 text-sm font-bold rounded-md bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ⏹️ Parar
           </button>
           <button 
             onClick={() => sendCommand('reset')}
-            className="px-6 py-2 text-base font-bold rounded-lg bg-slate-700 text-white hover:bg-slate-600 transition-all border border-slate-600"
+            className="px-4 py-1 text-sm font-bold rounded-md bg-slate-700 text-white hover:bg-slate-600 transition-all border border-slate-600"
           >
             🔄 Reiniciar
           </button>
