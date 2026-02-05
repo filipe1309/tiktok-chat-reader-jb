@@ -151,11 +151,12 @@ export function PollPage() {
             status={connection.status}
             username={currentUsername}
             onUsernameChange={setCurrentUsername}
+            autoFocus={!connection.isConnected}
           />
         </div>
 
         {/* Configuration Section */}
-        <div className="card mb-6 border border-slate-700/50">
+        <div className={`card mb-6 border border-slate-700/50 transition-all duration-300 ${!connection.isConnected ? 'blur-sm opacity-50 pointer-events-none' : ''}`}>
           <h2 className="text-xl font-bold text-white mb-4 pb-4 border-b border-slate-700/50">
             ⚙️ Configuração da Enquete
           </h2>
@@ -169,7 +170,7 @@ export function PollPage() {
         </div>
 
         {/* Controls Section - Centered */}
-        <div className="card mb-6 bg-purple-500/10 border-2 border-purple-500/30">
+        <div className={`card mb-6 bg-purple-500/10 border-2 border-purple-500/30 transition-all duration-300 ${!connection.isConnected ? 'blur-sm opacity-50 pointer-events-none' : ''}`}>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <button 
               onClick={() => handleStartPoll(
@@ -199,7 +200,7 @@ export function PollPage() {
         </div>
 
         {/* Results Section */}
-        <div className="card mb-6 border border-slate-700/50">
+        <div className={`card mb-6 border border-slate-700/50 transition-all duration-300 ${!connection.isConnected ? 'blur-sm opacity-50 pointer-events-none' : ''}`}>
           <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-700/50">
             <h2 className="text-xl font-bold text-white">📊 Resultados da Enquete</h2>
             <button 
@@ -233,7 +234,7 @@ export function PollPage() {
         </div>
 
         {/* Vote Log Section */}
-        <div className="card border border-slate-700/50">
+        <div className={`card border border-slate-700/50 transition-all duration-300 ${!connection.isConnected ? 'blur-sm opacity-50 pointer-events-none' : ''}`}>
           <h2 className="text-xl font-bold text-white mb-4 pb-4 border-b border-slate-700/50">
             📝 Registro de Votos
           </h2>

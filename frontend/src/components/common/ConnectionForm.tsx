@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent, KeyboardEvent } from 'react';
+import { useState, useEffect, useRef, FormEvent, KeyboardEvent } from 'react';
 import type { ConnectionStatus } from '@/hooks';
 
 interface ConnectionFormProps {
@@ -8,6 +8,7 @@ interface ConnectionFormProps {
   username?: string;
   onUsernameChange?: (username: string) => void;
   compact?: boolean;
+  autoFocus?: boolean;
 }
 
 const statusConfig = {
@@ -29,8 +30,16 @@ const statusConfig = {
   },
 };
 
-export function ConnectionForm({ onConnect, status, defaultUsername = 'jamesbonfim', username: controlledUsername, onUsernameChange, compact = false }: ConnectionFormProps) {
+export function ConnectionForm({ onConnect, status, defaultUsername = 'jamesbonfim', username: controlledUsername, onUsernameChange, compact = false, autoFocus = false }: ConnectionFormProps) {
   const [internalUsername, setInternalUsername] = useState(defaultUsername);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus input when autoFocus is true
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus]);
   
   // Use controlled or internal state
   const username = controlledUsername !== undefined ? controlledUsername : internalUsername;
@@ -68,6 +77,7 @@ export function ConnectionForm({ onConnect, status, defaultUsername = 'jamesbonf
     return (
       <form onSubmit={handleSubmit} className="flex items-center gap-3 flex-wrap">
         <input
+          ref={inputRef}
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
@@ -97,6 +107,7 @@ export function ConnectionForm({ onConnect, status, defaultUsername = 'jamesbonf
           Digite o <b className="text-tiktok-cyan">@usuário</b> de alguém que está ao vivo:
         </p>
         <input
+          ref={inputRef}
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
