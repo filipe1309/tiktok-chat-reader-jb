@@ -7,7 +7,7 @@ const DEFAULT_OPTIONS: PollOption[] = [
   { id: 2, text: 'Não' },
 ];
 
-// Default options for editing (8 slots)
+// Default options for editing (10 slots)
 const DEFAULT_EDIT_OPTIONS = [
   'Sim',
   'Não',
@@ -17,10 +17,14 @@ const DEFAULT_EDIT_OPTIONS = [
   '',
   '',
   '',
+  '',
+  '',
 ];
 
+const TOTAL_OPTIONS = DEFAULT_EDIT_OPTIONS.length;
+
 // Default selected options
-const DEFAULT_SELECTED = [true, true, false, false, false, false, false, false];
+const DEFAULT_SELECTED = [true, true, false, false, false, false, false, false, false, false];
 
 const initialPollState: PollState = {
   isRunning: false,
@@ -211,7 +215,7 @@ export function PollResultsPage() {
       const newSelected = [...DEFAULT_SELECTED].map(() => false);
       
       setupConfig.options.forEach(opt => {
-        if (opt.id >= 1 && opt.id <= 8) {
+        if (opt.id >= 1 && opt.id <= TOTAL_OPTIONS) {
           newOptions[opt.id - 1] = opt.text;
           newSelected[opt.id - 1] = true;
         }
