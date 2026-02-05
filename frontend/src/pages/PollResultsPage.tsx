@@ -259,24 +259,24 @@ export function PollResultsPage() {
         </div>
 
         {/* Control Buttons */}
-        <div className="flex items-center justify-center gap-5 p-6 bg-purple-500/10 rounded-xl border-2 border-purple-500/30">
+        <div className="flex items-center justify-center gap-3 p-3 bg-purple-500/10 rounded-xl border-2 border-purple-500/30">
           <button 
             onClick={() => sendCommand('start')}
             disabled={!isConnected || pollState.isRunning}
-            className="px-10 py-4 text-xl font-bold rounded-xl bg-gradient-to-r from-green-400 to-blue-500 text-white hover:from-green-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 text-base font-bold rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-white hover:from-green-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ▶️ Iniciar
           </button>
           <button 
             onClick={() => sendCommand('stop')}
             disabled={!pollState.isRunning}
-            className="px-10 py-4 text-xl font-bold rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 text-base font-bold rounded-lg bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ⏹️ Parar
           </button>
           <button 
             onClick={() => sendCommand('reset')}
-            className="px-10 py-4 text-xl font-bold rounded-xl bg-slate-700 text-white hover:bg-slate-600 transition-all border border-slate-600"
+            className="px-6 py-2 text-base font-bold rounded-lg bg-slate-700 text-white hover:bg-slate-600 transition-all border border-slate-600"
           >
             🔄 Reiniciar
           </button>

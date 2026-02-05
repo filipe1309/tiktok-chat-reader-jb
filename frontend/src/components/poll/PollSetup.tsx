@@ -254,11 +254,11 @@ export function PollSetup({
         <label className="block text-sm font-medium text-slate-300 mb-2">
           Opções (marque as opções que deseja incluir na enquete)
         </label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {options.map((option, index) => (
             <div 
               key={index} 
-              className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+              className={`flex items-center gap-2 p-2 rounded-lg border transition-all overflow-hidden ${
                 selectedOptions[index] 
                   ? 'bg-purple-900/30 border-purple-500/50' 
                   : 'bg-slate-900/50 border-slate-700/50'
@@ -268,7 +268,7 @@ export function PollSetup({
                 type="button"
                 onClick={() => toggleOption(index)}
                 disabled={disabled}
-                className={`w-6 h-6 flex items-center justify-center rounded border-2 transition-all flex-shrink-0 ${
+                className={`w-5 h-5 flex items-center justify-center rounded border-2 transition-all flex-shrink-0 text-sm ${
                   selectedOptions[index]
                     ? 'bg-purple-600 border-purple-500 text-white'
                     : 'bg-slate-800 border-slate-600 text-transparent hover:border-slate-500'
@@ -276,7 +276,7 @@ export function PollSetup({
               >
                 {selectedOptions[index] && '✓'}
               </button>
-              <span className={`w-9 h-9 flex items-center justify-center rounded-full font-bold text-lg flex-shrink-0 ${
+              <span className={`w-7 h-7 flex items-center justify-center rounded-full font-bold text-sm flex-shrink-0 ${
                 selectedOptions[index]
                   ? 'bg-gradient-to-br from-purple-600 to-purple-400 text-white'
                   : 'bg-slate-700 text-slate-400'
@@ -288,7 +288,7 @@ export function PollSetup({
                 value={option}
                 onChange={(e) => updateOption(index, e.target.value)}
                 placeholder={`Opção ${index + 1}`}
-                className="input-field flex-1 py-2"
+                className="input-field flex-1 min-w-0 py-1 text-sm"
                 disabled={disabled}
               />
             </div>
