@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-// Default options for the poll (fixed 10 options)
+// Default options for the poll (fixed 12 options)
 const DEFAULT_OPTIONS = [
   'Sim',
   'Não',
@@ -12,12 +12,14 @@ const DEFAULT_OPTIONS = [
   '',
   '',
   '',
+  '',
+  '',
 ];
 
 const TOTAL_OPTIONS = DEFAULT_OPTIONS.length;
 
 // Default selected options (1 and 2 - "Sim" and "Não")
-const DEFAULT_SELECTED = [true, true, false, false, false, false, false, false, false, false];
+const DEFAULT_SELECTED = [true, true, false, false, false, false, false, false, false, false, false, false];
 
 // Option with preserved original ID
 interface OptionWithId {
