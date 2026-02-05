@@ -55,25 +55,40 @@ export function PollSetup({
   const hasSentInitialChange = useRef(false);
 
   // Update state when externalConfig changes (from popup edit)
+  // Only update if this is the initial load (not from our own changes)
+  const lastExternalConfigRef = useRef<string | null>(null);
+  
   useEffect(() => {
     if (externalConfig) {
+      const configKey = JSON.stringify(externalConfig);
+      
+      // Skip if this is the same config we just sent (prevents overwriting our own changes)
+      if (lastExternalConfigRef.current === configKey) {
+        return;
+      }
+      lastExternalConfigRef.current = configKey;
+      
       console.log('[PollSetup] Received external config update:', externalConfig);
       setQuestion(externalConfig.question);
       setTimer(externalConfig.timer);
       
       // Rebuild options and selected arrays from externalConfig.options
-      const newOptions = [...DEFAULT_OPTIONS];
-      const newSelected = DEFAULT_SELECTED.map(() => false);
-      
-      externalConfig.options.forEach(opt => {
-        if (opt.id >= 1 && opt.id <= TOTAL_OPTIONS) {
-          newOptions[opt.id - 1] = opt.text;
-          newSelected[opt.id - 1] = true;
-        }
+      // Preserve existing option text for unselected options
+      setOptions(prevOptions => {
+        const newOptions = [...prevOptions];
+        // Reset selected status first
+        const newSelected = new Array(TOTAL_OPTIONS).fill(false);
+        
+        externalConfig.options.forEach(opt => {
+          if (opt.id >= 1 && opt.id <= TOTAL_OPTIONS) {
+            newOptions[opt.id - 1] = opt.text;
+            newSelected[opt.id - 1] = true;
+          }
+        });
+        
+        setSelectedOptions(newSelected);
+        return newOptions;
       });
-      
-      setOptions(newOptions);
-      setSelectedOptions(newSelected);
     }
   }, [externalConfig]);
 
@@ -139,6 +154,31 @@ export function PollSetup({
     }
   };
 
+  // Handle question change and notify parent
+  const handleQuestionChange = (value: string) => {
+    setQuestion(value);
+    
+    // Notify parent of change
+    if (onChange && hasSentInitialChange.current) {
+      const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
+      const questionText = value.trim() || 'Votar agora!';
+      onChange(questionText, selectedPollOptionsWithIds, timer);
+    }
+  };
+
+  // Handle timer change and notify parent
+  const handleTimerChange = (value: number) => {
+    const clampedValue = Math.min(300, Math.max(10, value));
+    setTimer(clampedValue);
+    
+    // Notify parent of change
+    if (onChange && hasSentInitialChange.current) {
+      const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
+      const questionText = question.trim() || 'Votar agora!';
+      onChange(questionText, selectedPollOptionsWithIds, clampedValue);
+    }
+  };
+
   const handleStart = () => {
     const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
     const questionText = question.trim() || 'Votar agora!';
@@ -161,7 +201,7 @@ export function PollSetup({
           <input
             type="text"
             value={question}
-            onChange={(e) => setQuestion(e.target.value)}
+            onChange={(e) => handleQuestionChange(e.target.value)}
             placeholder="Digite sua pergunta aqui..."
             className="input-field w-full"
             disabled={disabled}
@@ -176,7 +216,7 @@ export function PollSetup({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setTimer(prev => Math.max(10, prev - 30))}
+              onClick={() => handleTimerChange(timer - 30)}
               disabled={disabled || timer <= 10}
               className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -185,7 +225,7 @@ export function PollSetup({
             <input
               type="number"
               value={timer}
-              onChange={(e) => setTimer(Math.min(300, Math.max(10, Number(e.target.value))))}
+              onChange={(e) => handleTimerChange(Number(e.target.value))}
               min={10}
               max={300}
               className="input-field flex-1 text-center"
@@ -193,7 +233,7 @@ export function PollSetup({
             />
             <button
               type="button"
-              onClick={() => setTimer(prev => Math.min(300, prev + 30))}
+              onClick={() => handleTimerChange(timer + 30)}
               disabled={disabled || timer >= 300}
               className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
