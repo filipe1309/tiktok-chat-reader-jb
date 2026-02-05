@@ -131,16 +131,13 @@ export function PollResultsPage() {
   const totalVotes = getTotalVotes();
   const maxVotes = Math.max(...Object.values(pollState.votes), 0);
 
-  // Determine if poll is active
-  const isPollActive = pollState.isRunning || pollState.finished;
-
   // Serialize options to string for stable comparison in useMemo
   const pollOptionsKey = JSON.stringify(pollState.options);
   const setupOptionsKey = JSON.stringify(setupConfig?.options || []);
 
-  // SIMPLE LOGIC: Use pollState.options when poll is active, otherwise use setupConfig
+  // Use pollState.options ONLY when poll is actively running, otherwise use setupConfig for live preview
   const displayOptions = useMemo<PollOption[]>(() => {
-    if (isPollActive && pollState.options.length > 0) {
+    if (pollState.isRunning && pollState.options.length > 0) {
       return pollState.options;
     }
     if (setupConfig?.options && setupConfig.options.length > 0) {
@@ -149,7 +146,7 @@ export function PollResultsPage() {
     return DEFAULT_OPTIONS;
     // Use serialized keys for stable dependency comparison
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPollActive, pollOptionsKey, setupOptionsKey]);
+  }, [pollState.isRunning, pollOptionsKey, setupOptionsKey]);
 
   const winnerIds = useMemo(() => {
     if (!pollState.finished || totalVotes === 0) return [];
@@ -176,8 +173,9 @@ export function PollResultsPage() {
   };
 
   const status = getStatusDisplay();
-  const displayTimer = isPollActive ? pollState.timer : (setupConfig?.timer || 30);
-  const displayQuestion = isPollActive ? pollState.question : (setupConfig?.question || 'Votar agora!');
+  // Use pollState values ONLY when running, otherwise show setupConfig for live preview
+  const displayTimer = pollState.isRunning ? pollState.timer : (setupConfig?.timer || 30);
+  const displayQuestion = pollState.isRunning ? pollState.question : (setupConfig?.question || 'Votar agora!');
 
   if (isWaiting && !setupConfig && pollState.options.length === 0) {
     return (
