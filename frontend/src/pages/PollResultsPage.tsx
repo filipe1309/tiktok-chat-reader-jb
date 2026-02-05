@@ -349,7 +349,7 @@ export function PollResultsPage() {
           </div>
 
           {/* Results */}
-          <div className="space-y-3 flex-1">
+          <div className="space-y-3 flex-1 min-h-[440px]">
             {displayOptions.map((option) => {
               const percentage = pollState.options.length > 0 ? getPercentage(option.id) : 0;
               const votes = pollState.votes[option.id] || 0;
