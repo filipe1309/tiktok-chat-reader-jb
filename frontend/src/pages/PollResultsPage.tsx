@@ -118,6 +118,16 @@ export function PollResultsPage() {
     channelRef.postMessage({ type: 'poll-command', command });
   };
 
+  const sendReconnect = () => {
+    console.log('[PollResultsPage] Sending reconnect message, channelRef:', !!channelRef);
+    if (!channelRef) {
+      console.log('[PollResultsPage] No channelRef, cannot send reconnect');
+      return;
+    }
+    channelRef.postMessage({ type: 'reconnect' });
+    console.log('[PollResultsPage] Reconnect message sent');
+  };
+
   // Broadcast config changes back to PollPage
   const broadcastConfigChange = useCallback((question: string, options: PollOption[], timer: number) => {
     if (!channelRef) return;
@@ -279,7 +289,32 @@ export function PollResultsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col p-5">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col p-5 relative">
+      {/* Disconnected Modal with Blur Background */}
+      {!isConnected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Blur Backdrop */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+          
+          {/* Modal Content */}
+          <div className="relative z-10 bg-slate-800/95 border-2 border-red-500/50 rounded-2xl p-10 shadow-2xl shadow-red-500/20 max-w-md mx-4 text-center animate-pulse">
+            <div className="text-6xl mb-6">⚠️</div>
+            <h2 className="text-3xl font-bold text-red-400 mb-4">
+              Desconectado do TikTok
+            </h2>
+            <p className="text-slate-400 text-lg mb-8">
+              A conexão com o TikTok foi perdida. Clique no botão abaixo para reconectar.
+            </p>
+            <button
+              onClick={sendReconnect}
+              className="px-10 py-4 text-xl font-bold rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-400 hover:to-red-400 transition-all hover:scale-105 shadow-lg shadow-red-500/30"
+            >
+              🔄 Reconectar
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 text-center mb-5">
         {/* Control Buttons */}
         <div className="flex items-center justify-center gap-5 p-6 bg-purple-500/10 rounded-xl border-2 border-purple-500/30">

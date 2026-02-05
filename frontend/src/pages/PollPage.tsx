@@ -6,7 +6,18 @@ import type { ChatMessage, PollOption } from '@/types';
 import type { SetupConfig } from '@/hooks/usePoll';
 
 export function PollPage() {
-  const { pollState, voteLog, startPoll, stopPoll, resetPoll, processVote, clearVoteLog, getTotalVotes, getPercentage, openResultsPopup, broadcastSetupConfig, setConnectionStatus, onConfigUpdate } = usePoll();
+  const { pollState, voteLog, startPoll, stopPoll, resetPoll, processVote, clearVoteLog, getTotalVotes, getPercentage, openResultsPopup, broadcastSetupConfig, setConnectionStatus, onConfigUpdate, onReconnect } = usePoll();
+  
+  // Track current username in the input field for reconnection
+  const [currentUsername, setCurrentUsername] = useState(
+    localStorage.getItem('tiktok-poll-uniqueId') || 'jamesbonfim'
+  );
+  
+  // Keep a ref to the current username for the reconnect callback
+  const currentUsernameRef = useRef(currentUsername);
+  useEffect(() => {
+    currentUsernameRef.current = currentUsername;
+  }, [currentUsername]);
   
   // Track current setup configuration for preview
   // Start with null to let PollSetup component initialize via onChange
@@ -62,14 +73,37 @@ export function PollPage() {
     onChat: handleChat,
   });
 
+  // Keep connection ref updated for reconnect callback
+  const connectionRef = useRef(connection);
+  useEffect(() => {
+    connectionRef.current = connection;
+  }, [connection]);
+
   // Broadcast connection status to popup
   useEffect(() => {
     setConnectionStatus(connection.isConnected);
   }, [connection.isConnected, setConnectionStatus]);
 
   const handleConnect = (uniqueId: string) => {
+    localStorage.setItem('tiktok-poll-uniqueId', uniqueId);
     connection.connect(uniqueId, { enableExtendedGiftInfo: false });
   };
+
+  // Register reconnect callback for popup - only once on mount
+  useEffect(() => {
+    onReconnect(() => {
+      const usernameToConnect = currentUsernameRef.current;
+      console.log('[PollPage] Reconnect requested from popup');
+      console.log('[PollPage] currentUsername:', usernameToConnect);
+      console.log('[PollPage] isConnected:', connectionRef.current.isConnected);
+      if (usernameToConnect) {
+        console.log('[PollPage] Reconnecting to:', usernameToConnect);
+        connectionRef.current.connect(usernameToConnect, { enableExtendedGiftInfo: false });
+      } else {
+        console.log('[PollPage] No username to reconnect');
+      }
+    });
+  }, [onReconnect]);
 
   const handleStartPoll = (question: string, options: PollOption[], timer: number) => {
     startPoll(question, options, timer);
@@ -115,6 +149,8 @@ export function PollPage() {
           <ConnectionForm
             onConnect={handleConnect}
             status={connection.status}
+            username={currentUsername}
+            onUsernameChange={setCurrentUsername}
           />
         </div>
 

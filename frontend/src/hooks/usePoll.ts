@@ -37,6 +37,7 @@ interface UsePollReturn {
   broadcastSetupConfig: (config: SetupConfig) => void;
   setConnectionStatus: (isConnected: boolean) => void;
   onConfigUpdate: (callback: (config: SetupConfig) => void) => void;
+  onReconnect: (callback: () => void) => void;
 }
 
 const initialPollState: PollState = {
@@ -77,10 +78,16 @@ export function usePoll(): UsePollReturn {
     reset: () => void;
   } | null>(null);
   const configUpdateCallbackRef = useRef<((config: SetupConfig) => void) | null>(null);
+  const reconnectCallbackRef = useRef<(() => void) | null>(null);
 
   // Register callback for config updates from popup
   const onConfigUpdate = useCallback((callback: (config: SetupConfig) => void) => {
     configUpdateCallbackRef.current = callback;
+  }, []);
+
+  // Register callback for reconnect from popup
+  const onReconnect = useCallback((callback: () => void) => {
+    reconnectCallbackRef.current = callback;
   }, []);
 
   // Keep pollStateRef in sync with pollState
@@ -150,6 +157,16 @@ export function usePoll(): UsePollReturn {
           // Notify the callback (PollPage) about the config change
           if (configUpdateCallbackRef.current) {
             configUpdateCallbackRef.current(config);
+          }
+        } else if (event.data.type === 'reconnect') {
+          // Handle reconnect request from popup
+          console.log('[usePoll] Received reconnect request from popup');
+          console.log('[usePoll] reconnectCallbackRef.current:', !!reconnectCallbackRef.current);
+          if (reconnectCallbackRef.current) {
+            console.log('[usePoll] Calling reconnect callback');
+            reconnectCallbackRef.current();
+          } else {
+            console.log('[usePoll] No reconnect callback registered yet');
           }
         }
       };
@@ -515,5 +532,6 @@ export function usePoll(): UsePollReturn {
     broadcastSetupConfig,
     setConnectionStatus,
     onConfigUpdate,
+    onReconnect,
   };
 }

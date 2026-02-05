@@ -1,10 +1,12 @@
-import { useState, FormEvent, KeyboardEvent } from 'react';
+import { useState, useEffect, FormEvent, KeyboardEvent } from 'react';
 import type { ConnectionStatus } from '@/hooks';
 
 interface ConnectionFormProps {
   onConnect: (uniqueId: string) => void;
   status: ConnectionStatus;
   defaultUsername?: string;
+  username?: string;
+  onUsernameChange?: (username: string) => void;
   compact?: boolean;
 }
 
@@ -27,8 +29,26 @@ const statusConfig = {
   },
 };
 
-export function ConnectionForm({ onConnect, status, defaultUsername = 'jamesbonfim', compact = false }: ConnectionFormProps) {
-  const [username, setUsername] = useState(defaultUsername);
+export function ConnectionForm({ onConnect, status, defaultUsername = 'jamesbonfim', username: controlledUsername, onUsernameChange, compact = false }: ConnectionFormProps) {
+  const [internalUsername, setInternalUsername] = useState(defaultUsername);
+  
+  // Use controlled or internal state
+  const username = controlledUsername !== undefined ? controlledUsername : internalUsername;
+  const setUsername = (value: string) => {
+    if (onUsernameChange) {
+      onUsernameChange(value);
+    } else {
+      setInternalUsername(value);
+    }
+  };
+
+  // Sync internal state with defaultUsername on mount
+  useEffect(() => {
+    if (controlledUsername === undefined) {
+      setInternalUsername(defaultUsername);
+    }
+  }, [defaultUsername, controlledUsername]);
+
   const config = statusConfig[status];
 
   const handleSubmit = (e: FormEvent) => {
