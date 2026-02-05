@@ -18,6 +18,35 @@ const DEFAULT_OPTIONS = [
 
 const TOTAL_OPTIONS = DEFAULT_OPTIONS.length;
 
+// Max number of questions to save in history
+const MAX_QUESTION_HISTORY = 10;
+
+// Load question history from localStorage
+const loadQuestionHistory = (): string[] => {
+  const saved = localStorage.getItem('tiktok-poll-questionHistory');
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
+// Save question to history
+const saveQuestionToHistory = (question: string) => {
+  if (!question.trim()) return;
+  const history = loadQuestionHistory();
+  // Remove if already exists (to move to top)
+  const filtered = history.filter(q => q !== question.trim());
+  // Add to beginning
+  filtered.unshift(question.trim());
+  // Keep only last MAX_QUESTION_HISTORY
+  const trimmed = filtered.slice(0, MAX_QUESTION_HISTORY);
+  localStorage.setItem('tiktok-poll-questionHistory', JSON.stringify(trimmed));
+};
+
 // Default selected options (1 and 2 - "Sim" and "Não")
 const DEFAULT_SELECTED = [true, true, false, false, false, false, false, false, false, false, false, false];
 
@@ -55,6 +84,12 @@ export function PollSetup({
   const [selectedOptions, setSelectedOptions] = useState<boolean[]>(initialSelectedOptions);
   const [timer, setTimer] = useState(initialTimer);
   const hasSentInitialChange = useRef(false);
+  
+  // Question history state
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+  const questionInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // Update state when externalConfig changes (from popup edit)
   // Only update if this is the initial load (not from our own changes)
@@ -160,12 +195,60 @@ export function PollSetup({
   const handleQuestionChange = (value: string) => {
     setQuestion(value);
     
+    // Load fresh history and filter suggestions based on input
+    const history = loadQuestionHistory();
+    if (value.trim()) {
+      const filtered = history.filter(q => 
+        q.toLowerCase().includes(value.toLowerCase()) && q !== value
+      );
+      setFilteredSuggestions(filtered);
+      setShowSuggestions(filtered.length > 0);
+    } else {
+      // Show all history when input is empty
+      setFilteredSuggestions(history);
+      setShowSuggestions(history.length > 0);
+    }
+    
     // Notify parent of change
     if (onChange && hasSentInitialChange.current) {
       const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
       const questionText = value.trim() || 'Votar agora!';
       onChange(questionText, selectedPollOptionsWithIds, timer, options, selectedOptions);
     }
+  };
+  
+  // Handle selecting a suggestion
+  const handleSelectSuggestion = (suggestion: string) => {
+    setQuestion(suggestion);
+    setShowSuggestions(false);
+    
+    // Notify parent of change
+    if (onChange && hasSentInitialChange.current) {
+      const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
+      onChange(suggestion, selectedPollOptionsWithIds, timer, options, selectedOptions);
+    }
+  };
+  
+  // Save question to history when input loses focus
+  const handleQuestionBlur = () => {
+    // Delay hiding to allow click on suggestion
+    setTimeout(() => {
+      setShowSuggestions(false);
+    }, 200);
+    
+    // Save to history if it's a meaningful question
+    if (question.trim() && question.trim() !== 'Votar agora!') {
+      saveQuestionToHistory(question.trim());
+    }
+  };
+  
+  // Show suggestions on focus
+  const handleQuestionFocus = () => {
+    // Load fresh history
+    const history = loadQuestionHistory();
+    // Always show history on focus (regardless of current value)
+    setFilteredSuggestions(history);
+    setShowSuggestions(history.length > 0);
   };
 
   // Handle timer change and notify parent
@@ -196,18 +279,55 @@ export function PollSetup({
       {/* Question and Timer Row */}
       <div className="flex flex-wrap gap-4 items-end">
         {/* Question Input */}
-        <div className="flex-1 min-w-[300px]">
+        <div className="flex-1 min-w-[300px] relative">
           <label className="block text-sm font-medium text-slate-300 mb-1">
-            Pergunta da Enquete
+            Pergunta da Enquete {loadQuestionHistory().length > 0 && <span className="text-slate-500 text-xs">(histórico disponível)</span>}
           </label>
-          <input
-            type="text"
-            value={question}
-            onChange={(e) => handleQuestionChange(e.target.value)}
-            placeholder="Digite sua pergunta aqui..."
-            className="input-field w-full"
-            disabled={disabled}
-          />
+          <div className="relative">
+            <input
+              ref={questionInputRef}
+              type="text"
+              value={question}
+              onChange={(e) => handleQuestionChange(e.target.value)}
+              onFocus={handleQuestionFocus}
+              onBlur={handleQuestionBlur}
+              placeholder="Digite sua pergunta aqui..."
+              className="input-field w-full pr-8"
+              disabled={disabled}
+              autoComplete="off"
+            />
+            {loadQuestionHistory().length > 0 && (
+              <button
+                type="button"
+                onClick={handleQuestionFocus}
+                onMouseDown={(e) => e.preventDefault()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                disabled={disabled}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {/* Suggestions Dropdown */}
+          {showSuggestions && filteredSuggestions.length > 0 && (
+            <div 
+              ref={suggestionsRef}
+              className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-xl max-h-48 overflow-y-auto"
+            >
+              {filteredSuggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => handleSelectSuggestion(suggestion)}
+                  className="w-full px-4 py-2 text-left text-slate-200 hover:bg-slate-700 transition-colors first:rounded-t-lg last:rounded-b-lg truncate"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Timer */}
