@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-// Default options for the poll (fixed 8 options)
+// Default options for the poll (fixed 10 options)
 const DEFAULT_OPTIONS = [
   'Sim',
   'Não',
@@ -10,10 +10,14 @@ const DEFAULT_OPTIONS = [
   '',
   '',
   '',
+  '',
+  '',
 ];
 
+const TOTAL_OPTIONS = DEFAULT_OPTIONS.length;
+
 // Default selected options (1 and 2 - "Sim" and "Não")
-const DEFAULT_SELECTED = [true, true, false, false, false, false, false, false];
+const DEFAULT_SELECTED = [true, true, false, false, false, false, false, false, false, false];
 
 // Option with preserved original ID
 interface OptionWithId {
@@ -62,7 +66,7 @@ export function PollSetup({
       const newSelected = DEFAULT_SELECTED.map(() => false);
       
       externalConfig.options.forEach(opt => {
-        if (opt.id >= 1 && opt.id <= 8) {
+        if (opt.id >= 1 && opt.id <= TOTAL_OPTIONS) {
           newOptions[opt.id - 1] = opt.text;
           newSelected[opt.id - 1] = true;
         }
