@@ -46,18 +46,18 @@ export function PollResults({ pollState, getPercentage, getTotalVotes, showStatu
       {showStatusBar && (
         <div className="flex items-center justify-around flex-wrap gap-4 p-5 bg-slate-900/50 rounded-xl border border-slate-700/50">
           <div className="text-center">
-            <span className="block text-xs text-slate-400 mb-1">{pollState.isRunning ? 'Tempo Restante' : 'Tempo Configurado'}</span>
-            <span className={`font-mono text-3xl font-bold ${getTimerClasses()}`}>
+            <span className="block text-sm text-slate-400 mb-1">{pollState.isRunning ? 'Tempo Restante' : 'Tempo Configurado'}</span>
+            <span className={`font-mono text-4xl font-bold ${getTimerClasses()}`}>
               {pollState.isRunning ? `${pollState.timeLeft}s` : (pollState.timer > 0 ? `${pollState.timer}s` : '--')}
             </span>
           </div>
           <div className="text-center">
-            <span className="block text-xs text-slate-400 mb-1">Total de Votos</span>
-            <span className="font-bold text-purple-400 text-3xl">{totalVotes}</span>
+            <span className="block text-sm text-slate-400 mb-1">Total de Votos</span>
+            <span className="font-bold text-purple-400 text-4xl">{totalVotes}</span>
           </div>
           <div className="text-center">
-            <span className="block text-xs text-slate-400 mb-1">Status</span>
-            <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-bold border ${status.className}`}>
+            <span className="block text-sm text-slate-400 mb-1">Status</span>
+            <span className={`inline-block px-4 py-1.5 rounded-full text-base font-bold border ${status.className}`}>
               {status.text}
             </span>
           </div>
@@ -97,7 +97,7 @@ export function PollResults({ pollState, getPercentage, getTotalVotes, showStatu
             />
           )}
           <div className="text-center py-4 px-6">
-            <h3 className={`text-xl font-bold transition-colors duration-500 ${
+            <h3 className={`text-2xl font-bold transition-colors duration-500 ${
               pollState.isRunning
                 ? pollState.timeLeft <= 5
                   ? 'text-red-300'
@@ -138,26 +138,26 @@ export function PollResults({ pollState, getPercentage, getTotalVotes, showStatu
               />
               
               {/* Content */}
-              <div className={`relative flex items-center justify-between ${compact ? 'p-3' : 'p-4'}`}>
-                <div className="flex items-center gap-3">
-                  <span className={`${compact ? 'w-9 h-9 text-base' : 'w-10 h-10 text-lg'} flex items-center justify-center rounded-full font-bold text-white flex-shrink-0 ${
+              <div className={`relative flex items-center justify-between ${compact ? 'p-3' : 'p-5'}`}>
+                <div className="flex items-center gap-4">
+                  <span className={`${compact ? 'w-10 h-10 text-lg' : 'w-12 h-12 text-xl'} flex items-center justify-center rounded-full font-bold text-white flex-shrink-0 ${
                     isWinner 
                       ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-slate-900' 
                       : 'bg-gradient-to-br from-purple-600 to-purple-400'
                   }`}>
                     {option.id}
                   </span>
-                  <span className={`font-semibold text-white ${compact ? 'text-base' : 'text-lg'}`}>
+                  <span className={`font-semibold text-white ${compact ? 'text-lg' : 'text-xl'}`}>
                     {option.text}
                     {isWinner && <span className="ml-2">👑</span>}
                   </span>
                 </div>
                 
                 <div className="text-right flex-shrink-0">
-                  <span className={`font-bold ${isWinner ? 'text-yellow-400' : 'text-tiktok-cyan'} ${compact ? 'text-base' : 'text-lg'}`}>
+                  <span className={`font-bold ${isWinner ? 'text-yellow-400' : 'text-tiktok-cyan'} ${compact ? 'text-lg' : 'text-xl'}`}>
                     {votes} votos
                   </span>
-                  <span className="text-slate-400 ml-2">
+                  <span className="text-slate-400 text-lg ml-2">
                     ({percentageFixed}%)
                   </span>
                 </div>
@@ -181,7 +181,7 @@ export function PollResults({ pollState, getPercentage, getTotalVotes, showStatu
 
       {/* Footer stats */}
       {!compact && (
-        <div className="text-center text-slate-400 pt-3 border-t border-slate-700">
+        <div className="text-center text-slate-400 text-lg pt-3 border-t border-slate-700">
           Total de Votos: <span className="font-bold text-white">{totalVotes}</span>
           <span className="mx-2">•</span>
           Votantes Únicos: <span className="font-bold text-white">{pollState.voters.size}</span>
