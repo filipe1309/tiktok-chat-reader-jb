@@ -386,7 +386,7 @@ export function PollResultsPage() {
         </div>
       </div>
 
-      <div className="flex-1 space-y-5">
+      <div className="flex-1 space-y-1">
         {/* Status Bar */}
         <div className="flex items-center justify-around flex-wrap gap-8 p-8 bg-slate-800/50 rounded-xl border border-slate-700/50">
           <div className="text-center">
