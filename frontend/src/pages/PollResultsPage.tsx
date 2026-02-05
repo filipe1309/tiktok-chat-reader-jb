@@ -19,13 +19,42 @@ const initialPollState: PollState = {
   timeLeft: 0,
 };
 
+// Load full options config from localStorage (all options + selected state)
+const loadFullOptionsConfig = (): { allOptions: string[]; selectedOptions: boolean[] } | null => {
+  const saved = localStorage.getItem('tiktok-poll-fullOptions');
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
+// Load saved setup config from localStorage
+const loadSavedSetupConfig = (): SetupConfig | null => {
+  const saved = localStorage.getItem('tiktok-poll-setupConfig');
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
 export function PollResultsPage() {
   const [pollState, setPollState] = useState<PollState>(initialPollState);
-  const [setupConfig, setSetupConfig] = useState<SetupConfig | null>(null);
+  const [setupConfig, setSetupConfig] = useState<SetupConfig | null>(loadSavedSetupConfig);
   const [isWaiting, setIsWaiting] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [channelRef, setChannelRef] = useState<BroadcastChannel | null>(null);
+  
+  // Full options for the PollSetup component
+  const savedFullOptions = loadFullOptionsConfig();
 
   useEffect(() => {
     let channel: BroadcastChannel | null = null;
@@ -108,7 +137,7 @@ export function PollResultsPage() {
   };
 
   // Broadcast config changes back to PollPage (used by PollSetup onChange)
-  const handleSetupChange = useCallback((question: string, options: PollOption[], timer: number) => {
+  const handleSetupChange = useCallback((question: string, options: PollOption[], timer: number, allOptions?: string[], selectedOptions?: boolean[]) => {
     if (!channelRef) return;
     channelRef.postMessage({
       type: 'config-update',
@@ -116,6 +145,11 @@ export function PollResultsPage() {
     });
     // Also update local setupConfig
     setSetupConfig({ question, options, timer });
+    // Save to localStorage for persistence
+    localStorage.setItem('tiktok-poll-setupConfig', JSON.stringify({ question, options, timer }));
+    if (allOptions && selectedOptions) {
+      localStorage.setItem('tiktok-poll-fullOptions', JSON.stringify({ allOptions, selectedOptions }));
+    }
   }, [channelRef]);
 
   const getTotalVotes = useCallback(() => {
@@ -232,6 +266,10 @@ export function PollResultsPage() {
             disabled={pollState.isRunning}
             showStartButton={false}
             externalConfig={setupConfig}
+            initialQuestion={loadSavedSetupConfig()?.question}
+            initialOptions={savedFullOptions?.allOptions}
+            initialSelectedOptions={savedFullOptions?.selectedOptions}
+            initialTimer={loadSavedSetupConfig()?.timer}
           />
         </div>
 

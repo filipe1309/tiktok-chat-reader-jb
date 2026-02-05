@@ -19,20 +19,53 @@ export function PollPage() {
     currentUsernameRef.current = currentUsername;
   }, [currentUsername]);
   
+  // Load saved setup config from localStorage
+  const loadSavedSetupConfig = (): SetupConfig | null => {
+    const saved = localStorage.getItem('tiktok-poll-setupConfig');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  // Load full options config (all options + selected state)
+  const loadFullOptionsConfig = (): { allOptions: string[]; selectedOptions: boolean[] } | null => {
+    const saved = localStorage.getItem('tiktok-poll-fullOptions');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+  
   // Track current setup configuration for preview
-  // Start with null to let PollSetup component initialize via onChange
+  // Start with saved config or null to let PollSetup component initialize via onChange
   const [setupConfig, setSetupConfig] = useState<{
     question: string;
     options: PollOption[];
     timer: number;
-  } | null>(null);
+  } | null>(loadSavedSetupConfig);
   
   // Track external config updates from popup
   const [externalConfig, setExternalConfig] = useState<{
     question: string;
     options: PollOption[];
     timer: number;
-  } | null>(null);
+  } | null>(loadSavedSetupConfig);
+
+  // Full options config for persistence (all 12 options + selection state)
+  const savedFullOptions = loadFullOptionsConfig();
+
+  // Flag to skip first onChange if we have saved config (to prevent overwriting)
+  const hasInitializedRef = useRef(false);
+  const hasSavedConfig = useRef(!!loadSavedSetupConfig());
 
   // Use ref to track poll state for stable callback
   const pollStateRef = useRef(pollState);
@@ -49,13 +82,26 @@ export function PollPage() {
     });
   }, [onConfigUpdate]);
 
-  const handleSetupChange = useCallback((question: string, options: PollOption[], timer: number) => {
+  const handleSetupChange = useCallback((question: string, options: PollOption[], timer: number, allOptions?: string[], selectedOptions?: boolean[]) => {
+    // Skip the first onChange if we have saved config (PollSetup sends default values on mount)
+    if (hasSavedConfig.current && !hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      return;
+    }
+    hasInitializedRef.current = true;
+    
     const newConfig = {
       question,
       options, // Options already have their original IDs preserved
       timer,
     };
     setSetupConfig(newConfig);
+    // Save to localStorage for persistence across reloads
+    localStorage.setItem('tiktok-poll-setupConfig', JSON.stringify(newConfig));
+    // Save full options config (all options + selection state)
+    if (allOptions && selectedOptions) {
+      localStorage.setItem('tiktok-poll-fullOptions', JSON.stringify({ allOptions, selectedOptions }));
+    }
     // Clear external config when local changes are made
     setExternalConfig(null);
     // Always update the setup config ref, regardless of poll state
@@ -166,6 +212,10 @@ export function PollPage() {
             disabled={!connection.isConnected || pollState.isRunning}
             showStartButton={false}
             externalConfig={externalConfig}
+            initialQuestion={loadSavedSetupConfig()?.question}
+            initialOptions={savedFullOptions?.allOptions}
+            initialSelectedOptions={savedFullOptions?.selectedOptions}
+            initialTimer={loadSavedSetupConfig()?.timer}
           />
         </div>
 

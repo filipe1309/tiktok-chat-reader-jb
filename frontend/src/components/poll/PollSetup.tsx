@@ -29,7 +29,7 @@ interface OptionWithId {
 
 interface PollSetupProps {
   onStart: (question: string, options: OptionWithId[], timer: number) => void;
-  onChange?: (question: string, options: OptionWithId[], timer: number) => void;
+  onChange?: (question: string, options: OptionWithId[], timer: number, allOptions?: string[], selectedOptions?: boolean[]) => void;
   disabled?: boolean;
   initialQuestion?: string;
   initialOptions?: string[];
@@ -121,7 +121,7 @@ export function PollSetup({
       const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
       const questionText = question.trim() || 'Votar agora!';
       console.log('[PollSetup] Sending initial onChange with options:', selectedPollOptionsWithIds);
-      onChange(questionText, selectedPollOptionsWithIds, timer);
+      onChange(questionText, selectedPollOptionsWithIds, timer, options, selectedOptions);
       hasSentInitialChange.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -139,7 +139,7 @@ export function PollSetup({
     if (onChange && hasSentInitialChange.current) {
       const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds(newOptions, selectedOptions);
       const questionText = question.trim() || 'Votar agora!';
-      onChange(questionText, selectedPollOptionsWithIds, timer);
+      onChange(questionText, selectedPollOptionsWithIds, timer, newOptions, selectedOptions);
     }
   };
 
@@ -152,7 +152,7 @@ export function PollSetup({
     if (onChange && hasSentInitialChange.current) {
       const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds(options, newSelected);
       const questionText = question.trim() || 'Votar agora!';
-      onChange(questionText, selectedPollOptionsWithIds, timer);
+      onChange(questionText, selectedPollOptionsWithIds, timer, options, newSelected);
     }
   };
 
@@ -164,7 +164,7 @@ export function PollSetup({
     if (onChange && hasSentInitialChange.current) {
       const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
       const questionText = value.trim() || 'Votar agora!';
-      onChange(questionText, selectedPollOptionsWithIds, timer);
+      onChange(questionText, selectedPollOptionsWithIds, timer, options, selectedOptions);
     }
   };
 
@@ -177,7 +177,7 @@ export function PollSetup({
     if (onChange && hasSentInitialChange.current) {
       const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
       const questionText = question.trim() || 'Votar agora!';
-      onChange(questionText, selectedPollOptionsWithIds, clampedValue);
+      onChange(questionText, selectedPollOptionsWithIds, clampedValue, options, selectedOptions);
     }
   };
 
