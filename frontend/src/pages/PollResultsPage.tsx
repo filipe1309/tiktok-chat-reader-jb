@@ -282,20 +282,20 @@ export function PollResultsPage() {
         {/* Results Section */}
         <div className="flex-1 space-y-3">
           {/* Status Bar */}
-          <div className="flex items-center justify-around flex-wrap gap-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+          <div className="flex items-center justify-around flex-wrap gap-2 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50">
             <div className="text-center">
-              <span className="block text-xs text-slate-400 mb-1">{pollState.isRunning ? 'Tempo Restante' : 'Tempo Configurado'}</span>
-              <span className={`font-mono text-3xl font-bold ${getTimerClasses()}`}>
+              <span className="block text-[10px] text-slate-400">{pollState.isRunning ? 'Tempo Restante' : 'Tempo Configurado'}</span>
+              <span className={`font-mono text-xl font-bold ${getTimerClasses()}`}>
                 {pollState.isRunning ? `${pollState.timeLeft}s` : (displayTimer > 0 ? `${displayTimer}s` : '--')}
               </span>
             </div>
             <div className="text-center">
-              <span className="block text-xs text-slate-400 mb-1">Total de Votos</span>
-              <span className="font-bold text-purple-400 text-3xl">{totalVotes}</span>
+              <span className="block text-[10px] text-slate-400">Total de Votos</span>
+              <span className="font-bold text-purple-400 text-xl">{totalVotes}</span>
             </div>
             <div className="text-center">
-              <span className="block text-xs text-slate-400 mb-1">Status</span>
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold border ${status.className}`}>
+              <span className="block text-[10px] text-slate-400">Status</span>
+              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold border ${status.className}`}>
                 {status.text}
               </span>
             </div>
