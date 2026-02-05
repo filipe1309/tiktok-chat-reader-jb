@@ -315,7 +315,7 @@ export function PollResultsPage() {
         </div>
       )}
 
-      <div className="flex-1 text-center mb-5">
+      <div className="flex-1 text-center mb-1">
         {/* Control Buttons */}
         <div className="flex items-center justify-center gap-5 p-6 bg-purple-500/10 rounded-xl border-2 border-purple-500/30">
           <button 
@@ -350,10 +350,6 @@ export function PollResultsPage() {
             ✏️ {isEditing ? 'Editando' : 'Editar'}
           </button>
         </div>
-      </div>
-
-      <div className="text-center mb-6">
-        <h1 className="text-4xl font-bold text-white">📊 Resultados da Enquete</h1>
       </div>
 
       <div className="flex-1 space-y-5">
