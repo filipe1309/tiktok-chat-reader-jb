@@ -51,19 +51,9 @@ export function PollResultsPage() {
           });
           setIsWaiting(false);
         } else if (data.type === 'setup-config') {
-          // Only update setupConfig if poll is NOT active
-          setPollState(currentPollState => {
-            // Check if poll is actually inactive
-            const isPollInactive = !currentPollState.isRunning && 
-                                   !currentPollState.finished && 
-                                   currentPollState.options.length === 0;
-            
-            if (isPollInactive) {
-              const config = data.config as SetupConfig;
-              setSetupConfig(config);
-            }
-            return currentPollState;
-          });
+          // Always update setupConfig immediately - display logic handles what to show
+          const config = data.config as SetupConfig;
+          setSetupConfig(config);
           setIsWaiting(false);
         } else if (data.type === 'connection-status') {
           setIsConnected(data.isConnected);
