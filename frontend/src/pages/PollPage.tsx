@@ -1,13 +1,15 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useTikTokConnection, usePoll } from '@/hooks';
+import { useTikTokConnection, usePoll, useToast } from '@/hooks';
 import { ConnectionForm, PollSetup, PollResults, VoteLog } from '@/components';
 import type { ChatMessage, PollOption } from '@/types';
 import type { SetupConfig } from '@/hooks/usePoll';
 import { POLL_TIMER, DEFAULT_QUESTION } from '@/constants';
+import { safeSetItem } from '@/utils';
 
 export function PollPage() {
   const { pollState, voteLog, startPoll, stopPoll, resetPoll, processVote, clearVoteLog, getTotalVotes, getPercentage, openResultsPopup, broadcastSetupConfig, setConnectionStatus, onConfigUpdate, onReconnect } = usePoll();
+  const toast = useToast();
   
   // Track current username in the input field for reconnection
   const [currentUsername, setCurrentUsername] = useState(
@@ -98,10 +100,16 @@ export function PollPage() {
     };
     setSetupConfig(newConfig);
     // Save to localStorage for persistence across reloads
-    localStorage.setItem('tiktok-poll-setupConfig', JSON.stringify(newConfig));
+    const configResult = safeSetItem('tiktok-poll-setupConfig', newConfig);
+    if (!configResult.success && configResult.error) {
+      toast.warning(configResult.error);
+    }
     // Save full options config (all options + selection state)
     if (allOptions && selectedOptions) {
-      localStorage.setItem('tiktok-poll-fullOptions', JSON.stringify({ allOptions, selectedOptions }));
+      const optionsResult = safeSetItem('tiktok-poll-fullOptions', { allOptions, selectedOptions });
+      if (!optionsResult.success && optionsResult.error) {
+        toast.warning(optionsResult.error);
+      }
     }
     // Clear external config when local changes are made
     setExternalConfig(null);
@@ -131,9 +139,19 @@ export function PollPage() {
     setConnectionStatus(connection.isConnected);
   }, [connection.isConnected, setConnectionStatus]);
 
-  const handleConnect = (uniqueId: string) => {
-    localStorage.setItem('tiktok-poll-uniqueId', uniqueId);
-    connection.connect(uniqueId, { enableExtendedGiftInfo: false });
+  const handleConnect = async (uniqueId: string) => {
+    const result = safeSetItem('tiktok-poll-uniqueId', uniqueId);
+    if (!result.success && result.error) {
+      toast.warning(result.error);
+    }
+    
+    try {
+      await connection.connect(uniqueId, { enableExtendedGiftInfo: false });
+      toast.success(`Conectado a @${uniqueId}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      toast.error(`Erro ao conectar: ${errorMessage}`);
+    }
   };
 
   // Register reconnect callback for popup - only once on mount
@@ -221,6 +239,7 @@ export function PollPage() {
           <ConnectionForm
             onConnect={handleConnect}
             status={connection.status}
+            errorMessage={connection.error}
             username={currentUsername}
             onUsernameChange={setCurrentUsername}
             autoFocus={!connection.isConnected}

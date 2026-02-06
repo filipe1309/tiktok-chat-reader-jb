@@ -4,6 +4,7 @@ import type { ConnectionStatus } from '@/hooks';
 interface ConnectionFormProps {
   onConnect: (uniqueId: string) => void;
   status: ConnectionStatus;
+  errorMessage?: string | null;
   defaultUsername?: string;
   username?: string;
   onUsernameChange?: (username: string) => void;
@@ -30,7 +31,7 @@ const statusConfig = {
   },
 };
 
-export function ConnectionForm({ onConnect, status, defaultUsername = 'jamesbonfim', username: controlledUsername, onUsernameChange, compact = false, autoFocus = false }: ConnectionFormProps) {
+export function ConnectionForm({ onConnect, status, errorMessage, defaultUsername = 'jamesbonfim', username: controlledUsername, onUsernameChange, compact = false, autoFocus = false }: ConnectionFormProps) {
   const [internalUsername, setInternalUsername] = useState(defaultUsername);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -121,12 +122,25 @@ export function ConnectionForm({ onConnect, status, defaultUsername = 'jamesbonf
           disabled={status === 'connecting' || !username.trim()}
           className="px-6 py-3 font-bold rounded-lg bg-gradient-to-r from-green-600 to-green-500 text-white hover:from-green-500 hover:to-green-400 hover:shadow-lg hover:shadow-green-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {status === 'connecting' ? 'Conectando...' : 'Conectar'}
+          {status === 'connecting' ? 'Conectando...' : status === 'error' ? '🔄 Tentar Novamente' : 'Conectar'}
         </button>
         <span className={`px-4 py-2 rounded-full text-sm font-bold border ${config.className}`}>
           {config.text}
         </span>
       </div>
+      
+      {/* Error message with retry hint */}
+      {status === 'error' && errorMessage && (
+        <div className="flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+          <span className="text-red-400 text-2xl">⚠️</span>
+          <div className="flex-1">
+            <p className="text-red-300 text-sm font-medium">{errorMessage}</p>
+            <p className="text-red-400/70 text-xs mt-1">
+              Verifique se o usuário está ao vivo e tente novamente.
+            </p>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

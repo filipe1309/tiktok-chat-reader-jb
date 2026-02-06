@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useTikTokConnection } from '@/hooks';
+import { useTikTokConnection, useToast } from '@/hooks';
 import { ConnectionForm, RoomStats, ChatContainer, GiftContainer } from '@/components';
 import type { ChatItem, GiftMessage, ChatMessage, LikeMessage, MemberMessage, SocialMessage } from '@/types';
 
@@ -22,6 +22,7 @@ interface GiftData extends GiftMessage {
 export function ChatPage() {
   const [chatItems, setChatItems] = useState<ChatItem[]>([]);
   const [gifts, setGifts] = useState<GiftData[]>([]);
+  const toast = useToast();
 
   // Add chat item helper
   const addChatItem = useCallback((
@@ -91,11 +92,18 @@ export function ChatPage() {
     },
   });
 
-  const handleConnect = (uniqueId: string) => {
+  const handleConnect = async (uniqueId: string) => {
     // Reset state on new connection
     setChatItems([]);
     setGifts([]);
-    connection.connect(uniqueId, { enableExtendedGiftInfo: true });
+    
+    try {
+      await connection.connect(uniqueId, { enableExtendedGiftInfo: true });
+      toast.success(`Conectado a @${uniqueId}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      toast.error(`Erro ao conectar: ${errorMessage}`);
+    }
   };
 
   return (
@@ -104,6 +112,7 @@ export function ChatPage() {
         <ConnectionForm
           onConnect={handleConnect}
           status={connection.status}
+          errorMessage={connection.error}
           defaultUsername="jamesbonfim"
         />
       </div>
