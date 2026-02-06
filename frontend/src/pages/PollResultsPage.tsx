@@ -389,7 +389,7 @@ export function PollResultsPage() {
               />
             )}
             <div className="text-center py-5 px-6">
-              <h3 className={`text-3xl font-bold transition-colors duration-500 ${
+              <h3 className={`text-5xl font-bold transition-colors duration-500 ${
                 pollState.isRunning
                   ? pollState.timeLeft <= TIMER_THRESHOLDS.CRITICAL
                     ? 'text-red-300'
@@ -431,24 +431,24 @@ export function PollResultsPage() {
                   {/* Content */}
                   <div className="relative flex items-center justify-between p-5">
                     <div className="flex items-center gap-5">
-                      <span className={`w-14 h-14 flex items-center justify-center rounded-full font-bold text-white text-2xl flex-shrink-0 ${
+                      <span className={`w-16 h-16 flex items-center justify-center rounded-full font-bold text-white text-3xl flex-shrink-0 ${
                         isWinner 
                           ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-slate-900' 
                           : 'bg-gradient-to-br from-purple-600 to-purple-400'
                       }`}>
                         {option.id}
                       </span>
-                      <span className="font-semibold text-white text-2xl">
+                      <span className="font-semibold text-white text-3xl">
                         {option.text}
                         {isWinner && <span className="ml-2">👑</span>}
                       </span>
                     </div>
                     
                     <div className="text-right flex-shrink-0">
-                      <span className={`font-bold text-2xl ${isWinner ? 'text-yellow-400' : 'text-tiktok-cyan'}`}>
+                      <span className={`font-bold text-3xl ${isWinner ? 'text-yellow-400' : 'text-tiktok-cyan'}`}>
                         {votes} votos
                       </span>
-                      <span className="text-slate-400 text-xl ml-2">
+                      <span className="text-slate-400 text-2xl ml-2">
                         ({percentageFixed}%)
                       </span>
                     </div>
