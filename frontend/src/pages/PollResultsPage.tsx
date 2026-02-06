@@ -81,6 +81,12 @@ const loadSavedSetupConfig = (): SetupConfig | null => {
   return null;
 };
 
+// Generate unique tab ID
+const TAB_ID = `poll-results-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+const LEADER_KEY = 'poll-results-leader';
+const LEADER_HEARTBEAT_INTERVAL = 2000;
+const LEADER_TIMEOUT = 5000;
+
 export function PollResultsPage() {
   const [pollState, setPollState] = useState<PollState>(initialPollState);
   const [setupConfig, setSetupConfig] = useState<SetupConfig | null>(loadSavedSetupConfig);
@@ -88,12 +94,89 @@ export function PollResultsPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [channelRef, setChannelRef] = useState<BroadcastChannel | null>(null);
+  const [isLeader, setIsLeader] = useState(false);
   
   // Full options for the PollSetup component - use state so it can be updated from broadcast
   const [fullOptionsConfig, setFullOptionsConfig] = useState<{ allOptions: string[]; selectedOptions: boolean[] } | null>(loadFullOptionsConfig);
 
+  // Leader election - only the leader tab polls for updates
+  useEffect(() => {
+    const tryBecomeLeader = () => {
+      const leaderData = localStorage.getItem(LEADER_KEY);
+      const now = Date.now();
+      
+      if (!leaderData) {
+        // No leader, become leader
+        localStorage.setItem(LEADER_KEY, JSON.stringify({ id: TAB_ID, timestamp: now }));
+        setIsLeader(true);
+        return true;
+      }
+      
+      try {
+        const leader = JSON.parse(leaderData);
+        if (leader.id === TAB_ID) {
+          // We are already the leader, update heartbeat
+          localStorage.setItem(LEADER_KEY, JSON.stringify({ id: TAB_ID, timestamp: now }));
+          setIsLeader(true);
+          return true;
+        }
+        
+        // Check if leader is stale (timed out)
+        if (now - leader.timestamp > LEADER_TIMEOUT) {
+          // Leader timed out, take over
+          localStorage.setItem(LEADER_KEY, JSON.stringify({ id: TAB_ID, timestamp: now }));
+          setIsLeader(true);
+          return true;
+        }
+        
+        // Another tab is the active leader
+        setIsLeader(false);
+        return false;
+      } catch {
+        // Invalid data, become leader
+        localStorage.setItem(LEADER_KEY, JSON.stringify({ id: TAB_ID, timestamp: now }));
+        setIsLeader(true);
+        return true;
+      }
+    };
+
+    // Try to become leader immediately
+    tryBecomeLeader();
+
+    // Heartbeat interval - leader refreshes, followers check if leader is alive
+    const heartbeatInterval = setInterval(tryBecomeLeader, LEADER_HEARTBEAT_INTERVAL);
+
+    // Listen for storage changes (when another tab becomes leader or updates state)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === LEADER_KEY) {
+        tryBecomeLeader();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // Cleanup: if we're the leader, release leadership
+    return () => {
+      clearInterval(heartbeatInterval);
+      window.removeEventListener('storage', handleStorageChange);
+      
+      // Release leadership if we were the leader
+      const leaderData = localStorage.getItem(LEADER_KEY);
+      if (leaderData) {
+        try {
+          const leader = JSON.parse(leaderData);
+          if (leader.id === TAB_ID) {
+            localStorage.removeItem(LEADER_KEY);
+          }
+        } catch {
+          // Ignore
+        }
+      }
+    };
+  }, []);
+
   useEffect(() => {
     let channel: BroadcastChannel | null = null;
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
 
     try {
       channel = new BroadcastChannel('poll-results-channel');
@@ -133,17 +216,22 @@ export function PollResultsPage() {
         }
       };
 
-      channel.postMessage({ type: 'request-state' });
-      
-      // Poll for updates every second to keep timer and votes in sync
-      const pollInterval = setInterval(() => {
-        if (channel) {
-          channel.postMessage({ type: 'request-state' });
-        }
-      }, 1000);
+      // Only the leader tab polls for updates to avoid race conditions
+      if (isLeader) {
+        channel.postMessage({ type: 'request-state' });
+        
+        // Poll for updates every second to keep timer and votes in sync
+        pollInterval = setInterval(() => {
+          if (channel) {
+            channel.postMessage({ type: 'request-state' });
+          }
+        }, 1000);
+      }
       
       return () => {
-        clearInterval(pollInterval);
+        if (pollInterval) {
+          clearInterval(pollInterval);
+        }
         channel?.close();
       };
     } catch (e) {
@@ -151,9 +239,12 @@ export function PollResultsPage() {
     }
 
     return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
       channel?.close();
     };
-  }, []);
+  }, [isLeader]);
 
   const sendCommand = (command: 'start' | 'stop' | 'reset') => {
     if (!channelRef) return;
