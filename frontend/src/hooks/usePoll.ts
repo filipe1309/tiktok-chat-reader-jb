@@ -33,7 +33,7 @@ interface UsePollReturn {
   getWinner: () => PollOption | null;
   getPercentage: (optionId: number) => number;
   openResultsPopup: () => void;
-  broadcastSetupConfig: (config: SetupConfig) => void;
+  broadcastSetupConfig: (config: SetupConfig, fullOptions?: { allOptions: string[]; selectedOptions: boolean[] }) => void;
   setConnectionStatus: (isConnected: boolean) => void;
   onConfigUpdate: (callback: (config: SetupConfig) => void) => void;
   onReconnect: (callback: () => void) => void;
@@ -60,17 +60,45 @@ const INITIAL_SETUP_CONFIG: SetupConfig = {
   timer: POLL_TIMER.DEFAULT,
 };
 
+// Load fullOptionsConfig from localStorage
+const loadInitialFullOptionsConfig = (): { allOptions: string[]; selectedOptions: boolean[] } | null => {
+  try {
+    const saved = localStorage.getItem('tiktok-poll-fullOptions');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return null;
+};
+
+// Load setupConfig from localStorage  
+const loadInitialSetupConfig = (): SetupConfig => {
+  try {
+    const saved = localStorage.getItem('tiktok-poll-setupConfig');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return INITIAL_SETUP_CONFIG;
+};
+
 export function usePoll(): UsePollReturn {
   const [pollState, setPollState] = useState<PollState>(initialPollState);
   const [voteLog, setVoteLog] = useState<VoteEntry[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<BroadcastChannel | null>(null);
   const popupWindowRef = useRef<Window | null>(null);
-  // Initialize with the correct defaults that match PollSetup's DEFAULT_SELECTED (Sim, Não)
-  const setupConfigRef = useRef<SetupConfig>(INITIAL_SETUP_CONFIG);
+  // Initialize with saved config from localStorage or defaults
+  const setupConfigRef = useRef<SetupConfig>(loadInitialSetupConfig());
   
   const connectionStatusRef = useRef<boolean>(false);
   const pollStateRef = useRef<PollState>(initialPollState);
+  // Initialize fullOptionsConfig from localStorage
+  const fullOptionsConfigRef = useRef<{ allOptions: string[]; selectedOptions: boolean[] } | null>(loadInitialFullOptionsConfig());
   const commandHandlersRef = useRef<{
     start: () => void;
     stop: () => void;
@@ -136,6 +164,7 @@ export function usePoll(): UsePollReturn {
             channelRef.current?.postMessage({
               type: 'setup-config',
               config: setupConfigRef.current,
+              fullOptions: fullOptionsConfigRef.current,
             });
           }
           // Broadcast connection status
@@ -223,7 +252,7 @@ export function usePoll(): UsePollReturn {
 
   // Broadcast setup config changes (for preview in popup)
   // This ONLY updates the ref - actual broadcast happens on request-state
-  const broadcastSetupConfig = useCallback((config: SetupConfig) => {
+  const broadcastSetupConfig = useCallback((config: SetupConfig, fullOptions?: { allOptions: string[]; selectedOptions: boolean[] }) => {
     console.log('[usePoll] broadcastSetupConfig called - OLD:', setupConfigRef.current.options, 'NEW:', config.options);
     
     // Only update if the config actually changed (prevent unnecessary updates)
@@ -237,6 +266,11 @@ export function usePoll(): UsePollReturn {
       setupConfigRef.current = config;
     } else {
       console.log('[usePoll] Config unchanged, skipping update');
+    }
+    
+    // Update full options config if provided
+    if (fullOptions) {
+      fullOptionsConfigRef.current = fullOptions;
     }
     
     // DON'T broadcast immediately - let request-state handle it

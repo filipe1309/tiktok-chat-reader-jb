@@ -50,6 +50,7 @@ interface PollSetupProps {
   initialTimer?: number;
   showStartButton?: boolean;
   externalConfig?: { question: string; options: OptionWithId[]; timer: number } | null;
+  externalFullOptions?: { allOptions: string[]; selectedOptions: boolean[] } | null;
 }
 
 export function PollSetup({ 
@@ -61,7 +62,8 @@ export function PollSetup({
   initialSelectedOptions = [...DEFAULT_SELECTED_OPTIONS],
   initialTimer = POLL_TIMER.DEFAULT,
   showStartButton = true,
-  externalConfig = null
+  externalConfig = null,
+  externalFullOptions = null
 }: PollSetupProps) {
   const [question, setQuestion] = useState(initialQuestion);
   const [options, setOptions] = useState<string[]>(initialOptions);
@@ -74,6 +76,25 @@ export function PollSetup({
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const questionInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Update state when externalFullOptions changes (preferred - has complete state)
+  const lastExternalFullOptionsRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    if (externalFullOptions) {
+      const configKey = JSON.stringify(externalFullOptions);
+      
+      // Skip if this is the same config we just sent
+      if (lastExternalFullOptionsRef.current === configKey) {
+        return;
+      }
+      lastExternalFullOptionsRef.current = configKey;
+      
+      console.log('[PollSetup] Received external full options update:', externalFullOptions);
+      setOptions([...externalFullOptions.allOptions]);
+      setSelectedOptions([...externalFullOptions.selectedOptions]);
+    }
+  }, [externalFullOptions]);
 
   // Update state when externalConfig changes (from popup edit)
   // Only update if this is the initial load (not from our own changes)
@@ -93,25 +114,29 @@ export function PollSetup({
       setQuestion(externalConfig.question);
       setTimer(externalConfig.timer);
       
-      // Rebuild options and selected arrays from externalConfig.options
-      // Preserve existing option text for unselected options
-      setOptions(prevOptions => {
-        const newOptions = [...prevOptions];
-        // Reset selected status first
-        const newSelected = new Array(POLL_OPTIONS.TOTAL).fill(false);
-        
-        externalConfig.options.forEach(opt => {
-          if (opt.id >= 1 && opt.id <= POLL_OPTIONS.TOTAL) {
-            newOptions[opt.id - 1] = opt.text;
-            newSelected[opt.id - 1] = true;
-          }
+      // Only rebuild options from externalConfig if we don't have externalFullOptions
+      // (externalFullOptions is more complete and should take precedence for options)
+      if (!externalFullOptions) {
+        // Rebuild options and selected arrays from externalConfig.options
+        // Preserve existing option text for unselected options
+        setOptions(prevOptions => {
+          const newOptions = [...prevOptions];
+          // Reset selected status first
+          const newSelected = new Array(POLL_OPTIONS.TOTAL).fill(false);
+          
+          externalConfig.options.forEach(opt => {
+            if (opt.id >= 1 && opt.id <= POLL_OPTIONS.TOTAL) {
+              newOptions[opt.id - 1] = opt.text;
+              newSelected[opt.id - 1] = true;
+            }
+          });
+          
+          setSelectedOptions(newSelected);
+          return newOptions;
         });
-        
-        setSelectedOptions(newSelected);
-        return newOptions;
-      });
+      }
     }
-  }, [externalConfig]);
+  }, [externalConfig, externalFullOptions]);
 
   // Get the selected options for the poll - returns objects with id (1-based) and text
   const getSelectedPollOptions = (currentOptions?: string[], currentSelected?: boolean[]) => {

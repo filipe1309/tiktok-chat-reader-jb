@@ -12,9 +12,17 @@ export function PollPage() {
   const toast = useToast();
   
   // Track current username in the input field for reconnection
-  const [currentUsername, setCurrentUsername] = useState(
-    localStorage.getItem('tiktok-poll-uniqueId') || 'jamesbonfim'
-  );
+  const [currentUsername, setCurrentUsername] = useState(() => {
+    const saved = localStorage.getItem('tiktok-poll-uniqueId');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return saved; // fallback to raw value if not valid JSON
+      }
+    }
+    return 'jamesbonfim';
+  });
   
   // Keep a ref to the current username for the reconnect callback
   const currentUsernameRef = useRef(currentUsername);
@@ -115,7 +123,11 @@ export function PollPage() {
     setExternalConfig(null);
     // Always update the setup config ref, regardless of poll state
     // This ensures request-state always has the latest config
-    broadcastSetupConfig(newConfig);
+    // Pass fullOptions to keep popup in sync
+    const fullOptions = allOptions && selectedOptions 
+      ? { allOptions, selectedOptions } 
+      : undefined;
+    broadcastSetupConfig(newConfig, fullOptions);
   }, [broadcastSetupConfig]);
 
   const handleChat = useCallback((msg: ChatMessage) => {

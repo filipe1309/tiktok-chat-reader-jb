@@ -89,8 +89,8 @@ export function PollResultsPage() {
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [channelRef, setChannelRef] = useState<BroadcastChannel | null>(null);
   
-  // Full options for the PollSetup component
-  const savedFullOptions = loadFullOptionsConfig();
+  // Full options for the PollSetup component - use state so it can be updated from broadcast
+  const [fullOptionsConfig, setFullOptionsConfig] = useState<{ allOptions: string[]; selectedOptions: boolean[] } | null>(loadFullOptionsConfig);
 
   useEffect(() => {
     let channel: BroadcastChannel | null = null;
@@ -119,6 +119,10 @@ export function PollResultsPage() {
           // Always update setupConfig immediately - display logic handles what to show
           const config = data.config as SetupConfig;
           setSetupConfig(config);
+          // Also update fullOptionsConfig if provided
+          if (data.fullOptions) {
+            setFullOptionsConfig(data.fullOptions);
+          }
           setIsWaiting(false);
         } else if (data.type === 'connection-status') {
           setIsConnected(data.isConnected);
@@ -319,10 +323,11 @@ export function PollResultsPage() {
             disabled={pollState.isRunning}
             showStartButton={false}
             externalConfig={setupConfig}
-            initialQuestion={loadSavedSetupConfig()?.question}
-            initialOptions={savedFullOptions?.allOptions}
-            initialSelectedOptions={savedFullOptions?.selectedOptions}
-            initialTimer={loadSavedSetupConfig()?.timer}
+            externalFullOptions={fullOptionsConfig}
+            initialQuestion={setupConfig?.question}
+            initialOptions={fullOptionsConfig?.allOptions}
+            initialSelectedOptions={fullOptionsConfig?.selectedOptions}
+            initialTimer={setupConfig?.timer}
           />
         </div>
 
