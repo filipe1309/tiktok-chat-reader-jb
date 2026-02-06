@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+import confetti from 'canvas-confetti';
 import type { PollState } from '@/types';
 
 interface PollResultsProps {
@@ -8,8 +10,44 @@ interface PollResultsProps {
   compact?: boolean;
 }
 
+// Confetti celebration function
+const triggerConfetti = () => {
+  const duration = 3000;
+  const animationEnd = Date.now() + duration;
+  const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+  const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+  const interval = setInterval(() => {
+    const timeLeft = animationEnd - Date.now();
+
+    if (timeLeft <= 0) {
+      return clearInterval(interval);
+    }
+
+    const particleCount = 50 * (timeLeft / duration);
+
+    // Confetti from left side
+    confetti({
+      ...defaults,
+      particleCount,
+      origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      colors: ['#00f2ea', '#ff0050', '#fffc00', '#ee1d52'], // TikTok colors
+    });
+    
+    // Confetti from right side
+    confetti({
+      ...defaults,
+      particleCount,
+      origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      colors: ['#00f2ea', '#ff0050', '#fffc00', '#ee1d52'],
+    });
+  }, 250);
+};
+
 export function PollResults({ pollState, getPercentage, getTotalVotes, showStatusBar = true, compact = false }: PollResultsProps) {
   const totalVotes = getTotalVotes();
+  const hasTriggeredConfetti = useRef(false);
 
   // Find winner(s) - only when poll is finished
   const maxVotes = Math.max(...Object.values(pollState.votes), 0);
@@ -18,6 +56,21 @@ export function PollResults({ pollState, getPercentage, getTotalVotes, showStatu
         .filter(opt => pollState.votes[opt.id] === maxVotes && maxVotes > 0)
         .map(opt => opt.id)
     : [];
+
+  // Trigger confetti when poll finishes with votes
+  useEffect(() => {
+    if (pollState.finished && totalVotes > 0 && winnerIds.length > 0 && !hasTriggeredConfetti.current) {
+      hasTriggeredConfetti.current = true;
+      triggerConfetti();
+    }
+  }, [pollState.finished, totalVotes, winnerIds.length]);
+
+  // Reset confetti flag when poll starts running (new poll)
+  useEffect(() => {
+    if (pollState.isRunning) {
+      hasTriggeredConfetti.current = false;
+    }
+  }, [pollState.isRunning]);
 
   // Get timer CSS classes based on remaining time
   const getTimerClasses = () => {
