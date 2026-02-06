@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { PollState, PollOption, VoteEntry, ChatMessage } from '@/types';
-
-const DEFAULT_TIMER = 30;
+import { POLL_TIMER, DEFAULT_QUESTION } from '@/constants';
 
 // Serializable version of PollState for BroadcastChannel
 export interface SerializablePollState {
@@ -47,18 +46,18 @@ const initialPollState: PollState = {
   options: [],
   votes: {},
   voters: new Set(),
-  timer: DEFAULT_TIMER,
+  timer: POLL_TIMER.DEFAULT,
   timeLeft: 0,
 };
 
 // Initialize setupConfig OUTSIDE component to prevent recreation on every render
 const INITIAL_SETUP_CONFIG: SetupConfig = {
-  question: 'Votar agora!',
+  question: DEFAULT_QUESTION,
   options: [
     { id: 1, text: 'Sim' },
     { id: 2, text: 'Não' },
   ],
-  timer: 30,
+  timer: POLL_TIMER.DEFAULT,
 };
 
 export function usePoll(): UsePollReturn {
@@ -253,7 +252,7 @@ export function usePoll(): UsePollReturn {
     };
   }, []);
 
-  const startPoll = useCallback((question: string, options: PollOption[], timer = DEFAULT_TIMER) => {
+  const startPoll = useCallback((question: string, options: PollOption[], timer = POLL_TIMER.DEFAULT) => {
     console.log('[usePoll] startPoll called with options:', options);
     // Clear any existing timer
     if (timerRef.current) {

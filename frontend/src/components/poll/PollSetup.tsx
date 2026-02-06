@@ -1,29 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
-
-// Default options for the poll (fixed 12 options)
-const DEFAULT_OPTIONS = [
-  'Sim',
-  'Não',
-  'Correr',
-  'Pular',
-  'Laboratório',
-  '',
-  '',
-  '',
-  '',
-  '',
-  '',
-  '',
-];
-
-const TOTAL_OPTIONS = DEFAULT_OPTIONS.length;
-
-// Max number of questions to save in history
-const MAX_QUESTION_HISTORY = 10;
+import { 
+  POLL_TIMER, 
+  POLL_OPTIONS, 
+  QUESTION_HISTORY, 
+  DEFAULT_OPTIONS, 
+  DEFAULT_SELECTED_OPTIONS, 
+  DEFAULT_QUESTION 
+} from '@/constants';
 
 // Load question history from localStorage
 const loadQuestionHistory = (): string[] => {
-  const saved = localStorage.getItem('tiktok-poll-questionHistory');
+  const saved = localStorage.getItem(QUESTION_HISTORY.STORAGE_KEY);
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -42,13 +29,10 @@ const saveQuestionToHistory = (question: string) => {
   const filtered = history.filter(q => q !== question.trim());
   // Add to beginning
   filtered.unshift(question.trim());
-  // Keep only last MAX_QUESTION_HISTORY
-  const trimmed = filtered.slice(0, MAX_QUESTION_HISTORY);
-  localStorage.setItem('tiktok-poll-questionHistory', JSON.stringify(trimmed));
+  // Keep only last MAX_ITEMS
+  const trimmed = filtered.slice(0, QUESTION_HISTORY.MAX_ITEMS);
+  localStorage.setItem(QUESTION_HISTORY.STORAGE_KEY, JSON.stringify(trimmed));
 };
-
-// Default selected options (1 and 2 - "Sim" and "Não")
-const DEFAULT_SELECTED = [true, true, false, false, false, false, false, false, false, false, false, false];
 
 // Option with preserved original ID
 interface OptionWithId {
@@ -72,10 +56,10 @@ export function PollSetup({
   onStart, 
   onChange,
   disabled = false,
-  initialQuestion = 'Votar agora!',
-  initialOptions = DEFAULT_OPTIONS,
-  initialSelectedOptions = DEFAULT_SELECTED,
-  initialTimer = 30,
+  initialQuestion = DEFAULT_QUESTION,
+  initialOptions = [...DEFAULT_OPTIONS],
+  initialSelectedOptions = [...DEFAULT_SELECTED_OPTIONS],
+  initialTimer = POLL_TIMER.DEFAULT,
   showStartButton = true,
   externalConfig = null
 }: PollSetupProps) {
@@ -114,10 +98,10 @@ export function PollSetup({
       setOptions(prevOptions => {
         const newOptions = [...prevOptions];
         // Reset selected status first
-        const newSelected = new Array(TOTAL_OPTIONS).fill(false);
+        const newSelected = new Array(POLL_OPTIONS.TOTAL).fill(false);
         
         externalConfig.options.forEach(opt => {
-          if (opt.id >= 1 && opt.id <= TOTAL_OPTIONS) {
+          if (opt.id >= 1 && opt.id <= POLL_OPTIONS.TOTAL) {
             newOptions[opt.id - 1] = opt.text;
             newSelected[opt.id - 1] = true;
           }
@@ -154,7 +138,7 @@ export function PollSetup({
     console.log('[PollSetup] Mount useEffect - hasSentInitialChange:', hasSentInitialChange.current);
     if (!hasSentInitialChange.current && onChange) {
       const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
-      const questionText = question.trim() || 'Votar agora!';
+      const questionText = question.trim() || DEFAULT_QUESTION;
       console.log('[PollSetup] Sending initial onChange with options:', selectedPollOptionsWithIds);
       onChange(questionText, selectedPollOptionsWithIds, timer, options, selectedOptions);
       hasSentInitialChange.current = true;
@@ -173,7 +157,7 @@ export function PollSetup({
     // Notify parent of change with new state
     if (onChange && hasSentInitialChange.current) {
       const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds(newOptions, selectedOptions);
-      const questionText = question.trim() || 'Votar agora!';
+      const questionText = question.trim() || DEFAULT_QUESTION;
       onChange(questionText, selectedPollOptionsWithIds, timer, newOptions, selectedOptions);
     }
   };
@@ -186,7 +170,7 @@ export function PollSetup({
     // Notify parent of change with new state
     if (onChange && hasSentInitialChange.current) {
       const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds(options, newSelected);
-      const questionText = question.trim() || 'Votar agora!';
+      const questionText = question.trim() || DEFAULT_QUESTION;
       onChange(questionText, selectedPollOptionsWithIds, timer, options, newSelected);
     }
   };
@@ -212,7 +196,7 @@ export function PollSetup({
     // Notify parent of change
     if (onChange && hasSentInitialChange.current) {
       const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
-      const questionText = value.trim() || 'Votar agora!';
+      const questionText = value.trim() || DEFAULT_QUESTION;
       onChange(questionText, selectedPollOptionsWithIds, timer, options, selectedOptions);
     }
   };
@@ -237,7 +221,7 @@ export function PollSetup({
     }, 200);
     
     // Save to history if it's a meaningful question
-    if (question.trim() && question.trim() !== 'Votar agora!') {
+    if (question.trim() && question.trim() !== DEFAULT_QUESTION) {
       saveQuestionToHistory(question.trim());
     }
   };
@@ -253,26 +237,26 @@ export function PollSetup({
 
   // Handle timer change and notify parent
   const handleTimerChange = (value: number) => {
-    const clampedValue = Math.min(300, Math.max(10, value));
+    const clampedValue = Math.min(POLL_TIMER.MAX, Math.max(POLL_TIMER.MIN, value));
     setTimer(clampedValue);
     
     // Notify parent of change
     if (onChange && hasSentInitialChange.current) {
       const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
-      const questionText = question.trim() || 'Votar agora!';
+      const questionText = question.trim() || DEFAULT_QUESTION;
       onChange(questionText, selectedPollOptionsWithIds, clampedValue, options, selectedOptions);
     }
   };
 
   const handleStart = () => {
     const selectedPollOptionsWithIds = getSelectedPollOptionsWithIds();
-    const questionText = question.trim() || 'Votar agora!';
+    const questionText = question.trim() || DEFAULT_QUESTION;
     onStart(questionText, selectedPollOptionsWithIds, timer);
   };
 
-  // At least 2 options must be selected
+  // At least MIN_SELECTED options must be selected
   const selectedCount = selectedOptions.filter(Boolean).length;
-  const isValid = selectedCount >= 2;
+  const isValid = selectedCount >= POLL_OPTIONS.MIN_SELECTED;
 
   return (
     <div className="space-y-6">
@@ -338,28 +322,28 @@ export function PollSetup({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => handleTimerChange(timer - 30)}
-              disabled={disabled || timer <= 10}
+              onClick={() => handleTimerChange(timer - POLL_TIMER.STEP)}
+              disabled={disabled || timer <= POLL_TIMER.MIN}
               className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              -30
+              -{POLL_TIMER.STEP}
             </button>
             <input
               type="number"
               value={timer}
               onChange={(e) => handleTimerChange(Number(e.target.value))}
-              min={10}
-              max={300}
+              min={POLL_TIMER.MIN}
+              max={POLL_TIMER.MAX}
               className="input-field flex-1 text-center"
               disabled={disabled}
             />
             <button
               type="button"
-              onClick={() => handleTimerChange(timer + 30)}
-              disabled={disabled || timer >= 300}
+              onClick={() => handleTimerChange(timer + POLL_TIMER.STEP)}
+              disabled={disabled || timer >= POLL_TIMER.MAX}
               className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              +30
+              +{POLL_TIMER.STEP}
             </button>
           </div>
         </div>
@@ -410,9 +394,9 @@ export function PollSetup({
             </div>
           ))}
         </div>
-        {selectedCount < 2 && (
+        {selectedCount < POLL_OPTIONS.MIN_SELECTED && (
           <p className="text-red-400 text-sm mt-2">
-            ⚠️ Selecione pelo menos 2 opções para a enquete
+            ⚠️ Selecione pelo menos {POLL_OPTIONS.MIN_SELECTED} opções para a enquete
           </p>
         )}
       </div>

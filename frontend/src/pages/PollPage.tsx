@@ -4,6 +4,7 @@ import { useTikTokConnection, usePoll } from '@/hooks';
 import { ConnectionForm, PollSetup, PollResults, VoteLog } from '@/components';
 import type { ChatMessage, PollOption } from '@/types';
 import type { SetupConfig } from '@/hooks/usePoll';
+import { POLL_TIMER, DEFAULT_QUESTION } from '@/constants';
 
 export function PollPage() {
   const { pollState, voteLog, startPoll, stopPoll, resetPoll, processVote, clearVoteLog, getTotalVotes, getPercentage, openResultsPopup, broadcastSetupConfig, setConnectionStatus, onConfigUpdate, onReconnect } = usePoll();
@@ -157,12 +158,12 @@ export function PollPage() {
 
   // Ensure setupConfig is available before rendering
   const currentSetupConfig = setupConfig || {
-    question: 'Votar agora!',
+    question: DEFAULT_QUESTION,
     options: [
       { id: 1, text: 'Sim' },
       { id: 2, text: 'Não' },
     ],
-    timer: 30,
+    timer: POLL_TIMER.DEFAULT,
   };
 
   // Check if poll is active (has been configured)

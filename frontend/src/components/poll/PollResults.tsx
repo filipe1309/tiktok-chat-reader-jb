@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import type { PollState } from '@/types';
+import { CONFETTI, TIMER_THRESHOLDS } from '@/constants';
 
 interface PollResultsProps {
   pollState: PollState;
@@ -12,8 +13,7 @@ interface PollResultsProps {
 
 // Confetti celebration function
 const triggerConfetti = () => {
-  const duration = 3000;
-  const animationEnd = Date.now() + duration;
+  const animationEnd = Date.now() + CONFETTI.DURATION;
   const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
 
   const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
@@ -25,14 +25,14 @@ const triggerConfetti = () => {
       return clearInterval(interval);
     }
 
-    const particleCount = 50 * (timeLeft / duration);
+    const particleCount = CONFETTI.PARTICLE_COUNT_MULTIPLIER * (timeLeft / CONFETTI.DURATION);
 
     // Confetti from left side
     confetti({
       ...defaults,
       particleCount,
       origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-      colors: ['#00f2ea', '#ff0050', '#fffc00', '#ee1d52'], // TikTok colors
+      colors: CONFETTI.COLORS,
     });
     
     // Confetti from right side
@@ -40,9 +40,9 @@ const triggerConfetti = () => {
       ...defaults,
       particleCount,
       origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-      colors: ['#00f2ea', '#ff0050', '#fffc00', '#ee1d52'],
+      colors: CONFETTI.COLORS,
     });
-  }, 250);
+  }, CONFETTI.INTERVAL);
 };
 
 export function PollResults({ pollState, getPercentage, getTotalVotes, showStatusBar = true, compact = false }: PollResultsProps) {
@@ -75,8 +75,8 @@ export function PollResults({ pollState, getPercentage, getTotalVotes, showStatu
   // Get timer CSS classes based on remaining time
   const getTimerClasses = () => {
     if (!pollState.isRunning) return 'text-slate-400';
-    if (pollState.timeLeft <= 5) return 'timer-critical';
-    if (pollState.timeLeft <= 10) return 'timer-warning';
+    if (pollState.timeLeft <= TIMER_THRESHOLDS.CRITICAL) return 'timer-critical';
+    if (pollState.timeLeft <= TIMER_THRESHOLDS.WARNING) return 'timer-warning';
     return 'text-tiktok-cyan';
   };
 
@@ -121,9 +121,9 @@ export function PollResults({ pollState, getPercentage, getTotalVotes, showStatu
       {pollState.question && (
         <div className={`relative overflow-hidden rounded-xl border-l-4 transition-all duration-500 ${
           pollState.isRunning
-            ? pollState.timeLeft <= 5
+            ? pollState.timeLeft <= TIMER_THRESHOLDS.CRITICAL
               ? 'bg-red-500/20 border-red-500 animate-pulse shadow-lg shadow-red-500/20'
-              : pollState.timeLeft <= 10
+              : pollState.timeLeft <= TIMER_THRESHOLDS.WARNING
                 ? 'bg-yellow-500/15 border-yellow-500 shadow-lg shadow-yellow-500/10'
                 : 'bg-green-500/10 border-green-500'
             : 'bg-purple-500/10 border-purple-500'
@@ -132,9 +132,9 @@ export function PollResults({ pollState, getPercentage, getTotalVotes, showStatu
           {pollState.isRunning && pollState.timer > 0 && (
             <div 
               className={`absolute bottom-0 left-0 h-1.5 transition-all duration-1000 ease-linear ${
-                pollState.timeLeft <= 5 
+                pollState.timeLeft <= TIMER_THRESHOLDS.CRITICAL 
                   ? 'bg-gradient-to-r from-red-600 to-red-400 animate-pulse' 
-                  : pollState.timeLeft <= 10 
+                  : pollState.timeLeft <= TIMER_THRESHOLDS.WARNING 
                     ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' 
                     : 'bg-gradient-to-r from-green-500 to-tiktok-cyan'
               }`}
@@ -152,9 +152,9 @@ export function PollResults({ pollState, getPercentage, getTotalVotes, showStatu
           <div className="text-center py-5 px-6">
             <h3 className={`text-3xl font-bold transition-colors duration-500 ${
               pollState.isRunning
-                ? pollState.timeLeft <= 5
+                ? pollState.timeLeft <= TIMER_THRESHOLDS.CRITICAL
                   ? 'text-red-300'
-                  : pollState.timeLeft <= 10
+                  : pollState.timeLeft <= TIMER_THRESHOLDS.WARNING
                     ? 'text-yellow-300'
                     : 'text-white'
                 : 'text-white'
