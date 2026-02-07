@@ -86,6 +86,8 @@ make electron-dev     # Build & launch Electron in dev mode
 
 The poll feature allows viewers to vote by typing numbers in chat.
 
+![Poll Feature Demo](docs/tcrjb_poll.gif)
+
 ### How It Works
 
 1. Connect to a TikTok live stream using the streamer's @username
