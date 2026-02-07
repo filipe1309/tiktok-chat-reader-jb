@@ -328,7 +328,7 @@ electron-build-ts: check-backend-deps
 	@printf "$(GREEN)✓ Electron TypeScript compiled$(NC)\n"
 
 ## electron-dev: Build backend + Electron and launch the desktop app
-electron-dev: check-backend-deps
+electron-dev: check-backend-deps build
 	@printf "$(BLUE)🖥️  Launching Electron dev app...$(NC)\n"
 	@$(NPM) run electron:dev
 
