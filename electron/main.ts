@@ -48,12 +48,39 @@ function createWindow(): void {
   // Load the backend server URL
   mainWindow.loadURL(SERVER_URL);
 
-  // Open external links in the default browser
-  mainWindow.webContents.setWindowOpenHandler(({ url }: { url: string }) => {
+  // Handle new window requests (e.g., pop-out pages, external links)
+  mainWindow.webContents.setWindowOpenHandler(({ url, features }: { url: string; features: string }) => {
+    // Local URLs (same server) → open in a new Electron window
+    if (url.startsWith(SERVER_URL) || url.startsWith('/')) {
+      // Parse window features (width, height, left, top) from the window.open() call
+      const parseFeature = (name: string): number | undefined => {
+        const match = features.match(new RegExp(`${name}=(\\d+)`));
+        return match ? parseInt(match[1], 10) : undefined;
+      };
+
+      return {
+        action: 'allow' as const,
+        overrideBrowserWindowOptions: {
+          width: parseFeature('width') || 800,
+          height: parseFeature('height') || 600,
+          x: parseFeature('left'),
+          y: parseFeature('top'),
+          title: 'TikTok LIVE Chat Reader',
+          icon: path.join(__dirname, '../public-react/favicon.ico'),
+          webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false,
+          },
+        },
+      };
+    }
+
+    // External URLs → open in the default browser
     if (url.startsWith('http')) {
       shell.openExternal(url);
     }
-    return { action: 'deny' };
+    return { action: 'deny' as const };
   });
 
   mainWindow.on('closed', () => {
