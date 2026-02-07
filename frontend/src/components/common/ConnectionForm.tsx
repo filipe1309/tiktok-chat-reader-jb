@@ -129,17 +129,26 @@ export function ConnectionForm({ onConnect, status, errorMessage, defaultUsernam
         
         {/* Auto-reconnect checkbox */}
         {onAutoReconnectChange && (
-          <label className="flex items-center gap-2 cursor-pointer select-none ml-2">
-            <input
-              type="checkbox"
-              checked={autoReconnect}
-              onChange={(e) => onAutoReconnectChange(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-tiktok-cyan focus:ring-tiktok-cyan focus:ring-offset-slate-800 cursor-pointer"
-            />
-            <span className="text-sm text-slate-300 hover:text-white transition-colors">
+          <div className={`flex items-center gap-2 p-2 rounded-lg border transition-all ${
+            autoReconnect 
+              ? 'bg-purple-900/30 border-purple-500/50' 
+              : 'bg-slate-900/50 border-slate-700/50'
+          }`}>
+            <button
+              type="button"
+              onClick={() => onAutoReconnectChange(!autoReconnect)}
+              className={`w-5 h-5 flex items-center justify-center rounded border-2 transition-all flex-shrink-0 text-sm ${
+                autoReconnect
+                  ? 'bg-purple-600 border-purple-500 text-white'
+                  : 'bg-slate-800 border-slate-600 text-transparent hover:border-slate-500'
+              }`}
+            >
+              {autoReconnect && '✓'}
+            </button>
+            <span className="text-sm text-slate-300">
               🔄 Reconexão automática
             </span>
-          </label>
+          </div>
         )}
       </div>
       
