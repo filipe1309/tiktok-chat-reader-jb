@@ -30,6 +30,8 @@ interface TikTokEventHandlers {
   onRoomUser?: (message: RoomUserMessage) => void;
   onSocial?: (message: SocialMessage) => void;
   onStreamEnd?: () => void;
+  onDisconnect?: () => void;
+  onSocketReconnect?: () => void;
 }
 
 interface UseTikTokConnectionReturn extends TikTokConnectionState {
@@ -43,6 +45,7 @@ export function useTikTokConnection(
 ): UseTikTokConnectionReturn {
   const socketRef = useRef<Socket | null>(null);
   const handlersRef = useRef(handlers);
+  const wasConnectedToTikTokRef = useRef(false);
   
   const [state, setState] = useState<TikTokConnectionState>({
     status: 'disconnected',
@@ -66,23 +69,44 @@ export function useTikTokConnection(
 
     socket.on('connect', () => {
       console.info('Socket connected!');
+      // If we were previously connected to TikTok and socket reconnected, trigger the callback
+      if (wasConnectedToTikTokRef.current) {
+        console.info('Socket reconnected after being connected to TikTok - triggering onSocketReconnect');
+        handlersRef.current.onSocketReconnect?.();
+      }
     });
 
     socket.on('disconnect', () => {
       console.warn('Socket disconnected!');
       setState(prev => ({ ...prev, status: 'disconnected' }));
+      handlersRef.current.onDisconnect?.();
+    });
+
+    // Socket.IO reconnection - when socket reconnects after a disconnect
+    socket.io.on('reconnect', () => {
+      console.info('Socket.IO reconnected!');
+      if (wasConnectedToTikTokRef.current) {
+        console.info('Was connected to TikTok before - triggering onSocketReconnect');
+        handlersRef.current.onSocketReconnect?.();
+      }
     });
 
     socket.on('streamEnd', () => {
       console.warn('LIVE has ended!');
       handlersRef.current.onStreamEnd?.();
+      handlersRef.current.onDisconnect?.();
       setState(prev => ({ ...prev, status: 'disconnected', roomId: null }));
     });
 
     socket.on('tiktokDisconnected', (errMsg: string) => {
-      console.warn(errMsg);
-      if (errMsg?.includes('LIVE has ended')) {
-        setState(prev => ({ ...prev, status: 'disconnected', roomId: null }));
+      console.warn('TikTok disconnected:', errMsg);
+      setState(prev => ({ ...prev, status: 'disconnected', roomId: null }));
+      // Always trigger onDisconnect when TikTok disconnects (not just for LIVE ended)
+      handlersRef.current.onDisconnect?.();
+      // If socket is still connected, we can try to reconnect immediately
+      if (socket.connected && wasConnectedToTikTokRef.current) {
+        console.info('Socket still connected, triggering onSocketReconnect for TikTok reconnection');
+        handlersRef.current.onSocketReconnect?.();
       }
     });
 
@@ -159,6 +183,7 @@ export function useTikTokConnection(
 
         socket.once('tiktokConnected', (roomState: RoomState) => {
           clearTimeout(timeout);
+          wasConnectedToTikTokRef.current = true;
           setState(prev => ({
             ...prev,
             status: 'connected',

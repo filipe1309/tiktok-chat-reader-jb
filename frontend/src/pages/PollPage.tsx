@@ -1,5 +1,4 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { useTikTokConnection, usePoll, useToast } from '@/hooks';
 import { ConnectionForm, PollSetup, PollResults, VoteLog } from '@/components';
 import type { ChatMessage, PollOption } from '@/types';
@@ -23,6 +22,19 @@ export function PollPage() {
     }
     return 'jamesbonfim';
   });
+
+  // Auto-reconnect state
+  const [autoReconnect, setAutoReconnect] = useState(() => {
+    const saved = localStorage.getItem('tiktok-poll-autoReconnect');
+    return saved === 'true';
+  });
+  const autoReconnectRef = useRef(autoReconnect);
+  useEffect(() => {
+    autoReconnectRef.current = autoReconnect;
+  }, [autoReconnect]);
+
+  // Pending reconnect flag - set to true when we need to reconnect after socket comes back
+  const [pendingReconnect, setPendingReconnect] = useState(false);
   
   // Keep a ref to the current username for the reconnect callback
   const currentUsernameRef = useRef(currentUsername);
@@ -136,11 +148,90 @@ export function PollPage() {
     }
   }, [pollState.isRunning, processVote]);
 
+  // Auto-reconnect handler when connection is lost
+  const handleDisconnect = useCallback(() => {
+    console.log('[PollPage] Connection lost, autoReconnect:', autoReconnectRef.current);
+  }, []);
+
+  // Auto-reconnect handler when socket reconnects after disconnection
+  const handleSocketReconnect = useCallback(() => {
+    console.log('[PollPage] Socket reconnected callback fired, autoReconnect:', autoReconnectRef.current);
+    console.log('[PollPage] currentUsername:', currentUsernameRef.current);
+    if (autoReconnectRef.current && currentUsernameRef.current) {
+      console.log('[PollPage] Setting pendingReconnect to true');
+      setPendingReconnect(true);
+    }
+  }, []);
+
   const connection = useTikTokConnection({
     onChat: handleChat,
+    onDisconnect: handleDisconnect,
+    onSocketReconnect: handleSocketReconnect,
   });
 
-  // Keep connection ref updated for reconnect callback
+  // Handle pending reconnect when connection object is available
+  useEffect(() => {
+    if (pendingReconnect && autoReconnectRef.current && currentUsernameRef.current) {
+      console.log('[PollPage] Processing pending reconnect to:', currentUsernameRef.current);
+      setPendingReconnect(false);
+      
+      // Small delay to ensure everything is ready
+      const timeoutId = setTimeout(() => {
+        if (autoReconnectRef.current && currentUsernameRef.current) {
+          console.log('[PollPage] Attempting auto-reconnect...');
+          connection.connect(currentUsernameRef.current, { enableExtendedGiftInfo: false })
+            .then(() => {
+              toast.success(`Reconectado automaticamente a @${currentUsernameRef.current}`);
+            })
+            .catch((error) => {
+              console.error('[PollPage] Auto-reconnect failed:', error);
+              toast.error(`Falha na reconexão automática: ${error}`);
+            });
+        }
+      }, 1500);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [pendingReconnect, connection, toast]);
+
+  // Polling auto-reconnect: try every 10 seconds if disconnected and auto-reconnect is enabled
+  useEffect(() => {
+    if (!autoReconnect) return;
+    if (connection.isConnected) return;
+    if (connection.status === 'connecting') return;
+    if (!currentUsernameRef.current) return;
+
+    console.log('[PollPage] Starting auto-reconnect polling (every 10s)');
+    
+    // Try to reconnect immediately on first run
+    const attemptReconnect = () => {
+      if (!autoReconnectRef.current || !currentUsernameRef.current) return;
+      if (connection.status === 'connecting' || connection.isConnected) return;
+      
+      console.log('[PollPage] Auto-reconnect attempt to:', currentUsernameRef.current);
+      connection.connect(currentUsernameRef.current, { enableExtendedGiftInfo: false })
+        .then(() => {
+          console.log('[PollPage] Auto-reconnect successful!');
+          toast.success(`Reconectado automaticamente a @${currentUsernameRef.current}`);
+        })
+        .catch((error) => {
+          console.log('[PollPage] Auto-reconnect failed, will retry in 10s:', error);
+        });
+    };
+
+    // First attempt after 3 seconds
+    const initialTimeout = setTimeout(attemptReconnect, 3000);
+    
+    // Then retry every 10 seconds
+    const intervalId = setInterval(attemptReconnect, 10000);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(intervalId);
+    };
+  }, [autoReconnect, connection.isConnected, connection.status, connection, toast]);
+
+  // Keep connection ref updated for popup reconnect callback
   const connectionRef = useRef(connection);
   useEffect(() => {
     connectionRef.current = connection;
@@ -163,6 +254,14 @@ export function PollPage() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       toast.error(`Erro ao conectar: ${errorMessage}`);
+    }
+  };
+
+  const handleAutoReconnectChange = (enabled: boolean) => {
+    setAutoReconnect(enabled);
+    localStorage.setItem('tiktok-poll-autoReconnect', String(enabled));
+    if (enabled) {
+      toast.success('Reconexão automática ativada');
     }
   };
 
@@ -220,7 +319,7 @@ export function PollPage() {
         }`}>
           <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold text-white">🔗 Conexão XYZ</h2>
+              <h2 className="text-xl font-bold text-white">🔗 Conexão</h2>
               {/* Connection Status Indicator */}
               <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
                 connection.isConnected 
@@ -241,12 +340,6 @@ export function PollPage() {
                 </span>
               )}
             </div>
-            <Link 
-              to="/" 
-              className="text-tiktok-cyan hover:text-tiktok-cyan/80 transition-colors text-sm"
-            >
-              ← Voltar ao Menu
-            </Link>
           </div>
           <ConnectionForm
             onConnect={handleConnect}
@@ -255,6 +348,8 @@ export function PollPage() {
             username={currentUsername}
             onUsernameChange={setCurrentUsername}
             autoFocus={!connection.isConnected}
+            autoReconnect={autoReconnect}
+            onAutoReconnectChange={handleAutoReconnectChange}
           />
         </div>
 

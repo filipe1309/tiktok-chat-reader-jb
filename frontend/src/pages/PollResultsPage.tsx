@@ -93,6 +93,9 @@ export function PollResultsPage() {
   const [isWaiting, setIsWaiting] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
+  const [isAutoReconnectEnabled, setIsAutoReconnectEnabled] = useState(() => {
+    return localStorage.getItem('tiktok-poll-autoReconnect') === 'true';
+  });
   const [channelRef, setChannelRef] = useState<BroadcastChannel | null>(null);
   const [isLeader, setIsLeader] = useState(false);
   
@@ -150,6 +153,10 @@ export function PollResultsPage() {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === LEADER_KEY) {
         tryBecomeLeader();
+      }
+      // Listen for auto-reconnect setting changes
+      if (e.key === 'tiktok-poll-autoReconnect') {
+        setIsAutoReconnectEnabled(e.newValue === 'true');
       }
     };
     window.addEventListener('storage', handleStorageChange);
@@ -365,24 +372,31 @@ export function PollResultsPage() {
           
           {/* Modal Content */}
           <div className={`relative z-10 bg-slate-800/95 border-2 rounded-2xl p-10 shadow-2xl max-w-md mx-4 text-center ${
-            isReconnecting 
+            isReconnecting || isAutoReconnectEnabled
               ? 'border-yellow-500/50 shadow-yellow-500/20' 
               : 'border-red-500/50 shadow-red-500/20 animate-pulse'
           }`}>
-            {isReconnecting ? (
+            {isReconnecting || isAutoReconnectEnabled ? (
               <>
                 <div className="text-6xl mb-6 animate-spin">🔄</div>
                 <h2 className="text-3xl font-bold text-yellow-400 mb-4">
-                  Reconectando...
+                  {isAutoReconnectEnabled ? 'Reconexão Automática...' : 'Reconectando...'}
                 </h2>
                 <p className="text-slate-400 text-lg mb-8">
-                  Tentando restabelecer conexão com o TikTok.
+                  {isAutoReconnectEnabled 
+                    ? 'A reconexão automática está ativada. Tentando reconectar...'
+                    : 'Tentando restabelecer conexão com o TikTok.'}
                 </p>
                 <div className="flex justify-center gap-2">
                   <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                   <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                   <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                 </div>
+                {isAutoReconnectEnabled && (
+                  <p className="text-slate-500 text-sm mt-6">
+                    ✓ Reconexão automática ativada na página principal
+                  </p>
+                )}
               </>
             ) : (
               <>
@@ -399,6 +413,9 @@ export function PollResultsPage() {
                 >
                   🔄 Reconectar
                 </button>
+                <p className="text-slate-500 text-sm mt-6">
+                  💡 Dica: Ative a reconexão automática na página principal
+                </p>
               </>
             )}
           </div>

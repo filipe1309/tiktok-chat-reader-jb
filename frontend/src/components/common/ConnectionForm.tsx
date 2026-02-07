@@ -10,6 +10,8 @@ interface ConnectionFormProps {
   onUsernameChange?: (username: string) => void;
   compact?: boolean;
   autoFocus?: boolean;
+  autoReconnect?: boolean;
+  onAutoReconnectChange?: (enabled: boolean) => void;
 }
 
 const statusConfig = {
@@ -31,7 +33,7 @@ const statusConfig = {
   },
 };
 
-export function ConnectionForm({ onConnect, status, errorMessage, defaultUsername = 'jamesbonfim', username: controlledUsername, onUsernameChange, compact = false, autoFocus = false }: ConnectionFormProps) {
+export function ConnectionForm({ onConnect, status, errorMessage, defaultUsername = 'jamesbonfim', username: controlledUsername, onUsernameChange, compact = false, autoFocus = false, autoReconnect = false, onAutoReconnectChange }: ConnectionFormProps) {
   const [internalUsername, setInternalUsername] = useState(defaultUsername);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -124,9 +126,21 @@ export function ConnectionForm({ onConnect, status, errorMessage, defaultUsernam
         >
           {status === 'connecting' ? 'Conectando...' : status === 'error' ? '🔄 Tentar Novamente' : 'Conectar'}
         </button>
-        <span className={`px-4 py-2 rounded-full text-sm font-bold border ${config.className}`}>
-          {config.text}
-        </span>
+        
+        {/* Auto-reconnect checkbox */}
+        {onAutoReconnectChange && (
+          <label className="flex items-center gap-2 cursor-pointer select-none ml-2">
+            <input
+              type="checkbox"
+              checked={autoReconnect}
+              onChange={(e) => onAutoReconnectChange(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-tiktok-cyan focus:ring-tiktok-cyan focus:ring-offset-slate-800 cursor-pointer"
+            />
+            <span className="text-sm text-slate-300 hover:text-white transition-colors">
+              🔄 Reconexão automática
+            </span>
+          </label>
+        )}
       </div>
       
       {/* Error message with retry hint */}
