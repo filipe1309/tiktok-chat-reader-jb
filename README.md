@@ -1,8 +1,36 @@
 # TikTok LIVE Chat Reader
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+[![Socket.IO](https://img.shields.io/badge/Socket.IO-4.x-black.svg)](https://socket.io/)
+
 A chat reader and poll application for TikTok LIVE streams utilizing TikTok-Live-Connector and Socket.IO. Built with TypeScript using Clean Architecture principles. Available as a web server or desktop application (Electron).
 
 ![TikTok LIVE Chat Reader (Demo)](docs/chatreaderjb.gif)
+
+## 📑 Table of Contents
+
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Development](#-development)
+- [Configuration](#-configuration)
+- [Building Desktop App](#-building-desktop-app-electron)
+- [Web Pages](#-web-pages)
+- [Poll Feature](#-poll-feature)
+- [Troubleshooting](#-troubleshooting)
+- [License](#-license)
+- [Credits](#-credits)
+
+## ✨ Features
+
+- 💬 **Real-time Chat Reading** - Display TikTok LIVE chat messages instantly
+- 🗳️ **Interactive Polls** - Create polls where viewers vote by typing numbers in chat
+- 🎬 **OBS Overlay Support** - Dedicated overlay pages for streaming software
+- 🖥️ **Cross-platform Desktop App** - Standalone Electron app for Windows and macOS
+- 🏗️ **Clean Architecture** - Well-structured TypeScript codebase
+- ⚡ **Rate Limiting** - Built-in protection against excessive requests
+- 🔌 **Socket.IO Integration** - Real-time bidirectional communication
 
 ## 🚀 Quick Start
 
@@ -50,6 +78,22 @@ make test-coverage    # Run tests with coverage report
 make lint             # Run linters on both projects
 make backend-lint-fix # Fix backend lint issues
 ```
+
+## ⚙️ Configuration
+
+Configure the application using environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `8081` | Server port |
+| `SESSIONID` | - | TikTok session ID (optional, for authenticated features) |
+| `ENABLE_RATE_LIMIT` | `false` | Enable rate limiting |
+| `MAX_CONNECTIONS` | `10` | Maximum concurrent TikTok connections |
+| `MAX_REQUESTS_PER_MINUTE` | `5` | Rate limit threshold per client |
+| `NODE_ENV` | `development` | Environment mode (`development` or `production`) |
+| `STATIC_FILES_PATH` | `./public-react` | Path to static frontend files |
+
+You can set these in a `.env` file in the backend directory or export them in your shell.
 
 ## 📦 Building Desktop App (Electron)
 
@@ -103,7 +147,6 @@ The poll feature allows viewers to vote by typing numbers in chat.
 - **Real-time results** - Vote counts and percentages update instantly
 - **Vote logging** - Optional detailed log of each vote
 - **Timer display** - Countdown shows remaining time
-
 
 ## 📝 License
 
