@@ -343,6 +343,7 @@ export function PollPage() {
           </div>
           <ConnectionForm
             onConnect={handleConnect}
+            onDisconnect={connection.disconnect}
             status={connection.status}
             errorMessage={connection.error}
             username={currentUsername}

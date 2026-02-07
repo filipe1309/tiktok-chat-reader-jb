@@ -3,6 +3,7 @@ import type { ConnectionStatus } from '@/hooks';
 
 interface ConnectionFormProps {
   onConnect: (uniqueId: string) => void;
+  onDisconnect?: () => void;
   status: ConnectionStatus;
   errorMessage?: string | null;
   defaultUsername?: string;
@@ -33,7 +34,7 @@ const statusConfig = {
   },
 };
 
-export function ConnectionForm({ onConnect, status, errorMessage, defaultUsername = 'jamesbonfim', username: controlledUsername, onUsernameChange, compact = false, autoFocus = false, autoReconnect = false, onAutoReconnectChange }: ConnectionFormProps) {
+export function ConnectionForm({ onConnect, onDisconnect, status, errorMessage, defaultUsername = 'jamesbonfim', username: controlledUsername, onUsernameChange, compact = false, autoFocus = false, autoReconnect = false, onAutoReconnectChange }: ConnectionFormProps) {
   const [internalUsername, setInternalUsername] = useState(defaultUsername);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -65,7 +66,9 @@ export function ConnectionForm({ onConnect, status, errorMessage, defaultUsernam
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (username.trim()) {
+    if (status === 'connected' && onDisconnect) {
+      onDisconnect();
+    } else if (username.trim()) {
       onConnect(username.trim());
     }
   };
@@ -91,10 +94,10 @@ export function ConnectionForm({ onConnect, status, errorMessage, defaultUsernam
         />
         <button
           type="submit"
-          disabled={status === 'connecting' || !username.trim()}
-          className="btn-primary"
+          disabled={status === 'connecting' || (!username.trim() && status !== 'connected')}
+          className={status === 'connected' ? 'btn-danger' : 'btn-primary'}
         >
-          {status === 'connecting' ? 'Conectando...' : 'Conectar'}
+          {status === 'connecting' ? 'Conectando...' : status === 'connected' ? 'Desconectar' : 'Conectar'}
         </button>
         <span className={`px-3 py-1.5 rounded-full text-sm font-bold border ${config.className}`}>
           {config.text}
@@ -121,10 +124,14 @@ export function ConnectionForm({ onConnect, status, errorMessage, defaultUsernam
         />
         <button
           type="submit"
-          disabled={status === 'connecting' || !username.trim()}
-          className="px-6 py-3 font-bold rounded-lg bg-gradient-to-r from-green-600 to-green-500 text-white hover:from-green-500 hover:to-green-400 hover:shadow-lg hover:shadow-green-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={status === 'connecting' || (!username.trim() && status !== 'connected')}
+          className={`px-6 py-3 font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+            status === 'connected'
+              ? 'bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-500 hover:to-red-400 hover:shadow-lg hover:shadow-red-500/30'
+              : 'bg-gradient-to-r from-green-600 to-green-500 text-white hover:from-green-500 hover:to-green-400 hover:shadow-lg hover:shadow-green-500/30'
+          }`}
         >
-          {status === 'connecting' ? 'Conectando...' : status === 'error' ? '🔄 Tentar Novamente' : 'Conectar'}
+          {status === 'connecting' ? 'Conectando...' : status === 'connected' ? 'Desconectar' : status === 'error' ? '🔄 Tentar Novamente' : 'Conectar'}
         </button>
         
         {/* Auto-reconnect checkbox */}

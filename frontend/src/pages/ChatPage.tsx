@@ -111,6 +111,7 @@ export function ChatPage() {
       <div className="mb-6">
         <ConnectionForm
           onConnect={handleConnect}
+          onDisconnect={connection.disconnect}
           status={connection.status}
           errorMessage={connection.error}
           defaultUsername="jamesbonfim"
