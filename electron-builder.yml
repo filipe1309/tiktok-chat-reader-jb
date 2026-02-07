@@ -8,7 +8,8 @@ directories:
 
 # Files to include in the Electron package
 files:
-  - dist/**/*
+  - backend/dist/**/*
+  - backend/node_modules/**/*
   - dist-electron/**/*
   - public-react/**/*
   - node_modules/**/*
@@ -23,17 +24,12 @@ extraMetadata:
 mac:
   category: public.app-category.social-networking
   target:
-    - target: dmg
-      arch:
-        - x64
-        - arm64
+    # DMG disabled due to hdiutil conflicts on Apple Silicon
+    # Users can extract the app from the ZIP file instead
     - target: zip
       arch:
         - x64
         - arm64
-
-dmg:
-  title: "${productName} ${version}"
 
 # ─── Windows ──────────────────────────────────────────────────────────
 win:

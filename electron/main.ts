@@ -24,7 +24,7 @@ function startBackendServer(): void {
   process.env.STATIC_FILES_PATH = staticPath;
 
   // Import the compiled backend entry point — this starts the server
-  require('../dist/main');
+  require('../backend/dist/main');
 }
 
 /**

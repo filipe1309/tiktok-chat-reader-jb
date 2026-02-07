@@ -220,7 +220,7 @@ export function PollPage() {
         }`}>
           <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold text-white">🔗 Conexão</h2>
+              <h2 className="text-xl font-bold text-white">🔗 Conexão XYZ</h2>
               {/* Connection Status Indicator */}
               <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
                 connection.isConnected 

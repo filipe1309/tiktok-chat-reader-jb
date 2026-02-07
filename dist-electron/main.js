@@ -57,7 +57,7 @@ function startBackendServer() {
     const staticPath = path_1.default.join(__dirname, '../public-react');
     process.env.STATIC_FILES_PATH = staticPath;
     // Import the compiled backend entry point — this starts the server
-    require('../dist/main');
+    require('../backend/dist/main');
 }
 /**
  * Create the main application window.

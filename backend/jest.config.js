@@ -19,7 +19,7 @@ module.exports = {
     '!main.ts',
     '!__tests__/**',
   ],
-  coverageDirectory: '../coverage',
+  coverageDirectory: './coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   coverageThreshold: {
     global: {

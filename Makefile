@@ -13,11 +13,10 @@ NPM := npm
 TSC := npx tsc
 TS_NODE := npx ts-node
 ESLINT := npx eslint
-PKG := npx pkg
 
 # Directories
 BACKEND_DIR := backend
-DIST_DIR := dist
+DIST_DIR := $(BACKEND_DIR)/dist
 DIST_ELECTRON_DIR := dist-electron
 RELEASE_DIR := release
 PUBLIC_DIR := public-react
@@ -104,9 +103,15 @@ check-node:
 	fi
 
 check-backend-deps:
-	@if [ ! -d "$(NODE_MODULES)" ]; then \
+	@if [ ! -d "$(BACKEND_DIR)/$(NODE_MODULES)" ]; then \
 		printf "$(YELLOW)⚠️  Backend dependencies not found. Running 'make backend-install'...$(NC)\n"; \
 		$(MAKE) backend-install; \
+	fi
+
+check-electron-deps:
+	@if [ ! -d "$(NODE_MODULES)" ]; then \
+		printf "$(YELLOW)⚠️  Electron dependencies not found. Running 'make electron-install'...$(NC)\n"; \
+		$(MAKE) electron-install; \
 	fi
 
 check-frontend-deps:
@@ -119,8 +124,8 @@ check-frontend-deps:
 # Combined Commands (Backend + Frontend)
 # =============================================================================
 
-## install: Install all dependencies (backend + frontend)
-install: backend-install frontend-install
+## install: Install all dependencies (backend + frontend + electron)
+install: backend-install frontend-install electron-install
 	@printf "$(GREEN)✓ All dependencies installed$(NC)\n"
 
 ## dev: Start both backend and frontend dev servers
@@ -129,7 +134,7 @@ dev:
 	@printf "$(YELLOW)  Backend:  http://localhost:8081$(NC)\n"
 	@printf "$(YELLOW)  Frontend: http://localhost:3000$(NC)\n"
 	@printf "\n"
-	@$(NPM) run dev & cd $(FRONTEND_DIR) && $(NPM) run dev
+	@cd $(BACKEND_DIR) && $(NPM) run dev & cd $(FRONTEND_DIR) && $(NPM) run dev
 
 ## build: Build both backend and frontend
 build: backend-build frontend-build
@@ -157,9 +162,11 @@ clean: backend-clean frontend-clean electron-clean
 	@printf "$(GREEN)✓ All clean complete$(NC)\n"
 
 ## clean-all: Clean artifacts and all node_modules
-clean-all: backend-clean-all frontend-clean
+clean-all: backend-clean-all frontend-clean electron-clean
 	@printf "$(BLUE)🧹 Removing frontend node_modules...$(NC)\n"
 	@rm -rf $(FRONTEND_DIR)/$(NODE_MODULES)
+	@printf "$(BLUE)🧹 Removing root node_modules...$(NC)\n"
+	@rm -rf $(NODE_MODULES)
 	@printf "$(GREEN)✓ Full clean complete$(NC)\n"
 
 ## info: Display project information
@@ -168,9 +175,13 @@ info:
 	@printf "$(BLUE)║                   Project Information                        ║$(NC)\n"
 	@printf "$(BLUE)╚══════════════════════════════════════════════════════════════╝$(NC)\n"
 	@printf "\n"
-	@printf "$(CYAN)Backend:$(NC)\n"
+	@printf "$(CYAN)Root (Electron):$(NC)\n"
 	@printf "  Name:    %s\n" "$$($(NODE) -p "require('./package.json').name")"
 	@printf "  Version: %s\n" "$$($(NODE) -p "require('./package.json').version")"
+	@printf "\n"
+	@printf "$(CYAN)Backend:$(NC)\n"
+	@printf "  Name:    %s\n" "$$($(NODE) -p "require('./backend/package.json').name")"
+	@printf "  Version: %s\n" "$$($(NODE) -p "require('./backend/package.json').version")"
 	@printf "\n"
 	@printf "$(CYAN)Frontend:$(NC)\n"
 	@printf "  Name:    %s\n" "$$($(NODE) -p "require('./frontend/package.json').name")"
@@ -187,65 +198,59 @@ info:
 ## backend-install: Install backend dependencies
 backend-install: check-node
 	@printf "$(BLUE)📦 Installing backend dependencies...$(NC)\n"
-	@$(NPM) install
+	@cd $(BACKEND_DIR) && $(NPM) install
 	@printf "$(GREEN)✓ Backend dependencies installed$(NC)\n"
 
 ## backend-dev: Start backend dev server (port 8081)
 backend-dev: check-backend-deps
 	@printf "$(BLUE)🚀 Starting backend dev server...$(NC)\n"
-	@$(NPM) run dev
+	@cd $(BACKEND_DIR) && $(NPM) run dev
 
 ## backend-dev-watch: Start backend dev server with auto-reload
 backend-dev-watch: check-backend-deps
 	@printf "$(BLUE)🚀 Starting backend dev server with auto-reload...$(NC)\n"
-	@$(NPM) run dev:watch
+	@cd $(BACKEND_DIR) && $(NPM) run dev:watch
 
 ## backend-build: Compile TypeScript to JavaScript
 backend-build: check-backend-deps frontend-build
 	@printf "$(BLUE)📝 Compiling backend TypeScript...$(NC)\n"
 	@rm -rf $(DIST_DIR)
-	@$(NPM) run build
+	@cd $(BACKEND_DIR) && $(NPM) run build
 	@printf "$(GREEN)✓ Backend build complete$(NC)\n"
 
 ## backend-start: Start production server
 backend-start:
 	@printf "$(BLUE)🚀 Starting backend production server...$(NC)\n"
-	@$(NPM) run start
+	@cd $(BACKEND_DIR) && $(NPM) run start
 
 ## backend-lint: Run ESLint on backend
 backend-lint: check-backend-deps
 	@printf "$(BLUE)🔍 Running backend linter...$(NC)\n"
-	@$(NPM) run lint
+	@cd $(BACKEND_DIR) && $(NPM) run lint
 
 ## backend-lint-fix: Run ESLint with auto-fix on backend
 backend-lint-fix: check-backend-deps
 	@printf "$(BLUE)🔧 Running backend linter with auto-fix...$(NC)\n"
-	@$(NPM) run lint:fix
+	@cd $(BACKEND_DIR) && $(NPM) run lint:fix
 	@printf "$(GREEN)✓ Backend lint fixes applied$(NC)\n"
 
 ## backend-watch: Watch for file changes and rebuild
 backend-watch: check-backend-deps
 	@printf "$(BLUE)👀 Watching backend for changes...$(NC)\n"
-	@$(TSC) -p backend/tsconfig.json --watch
+	@cd $(BACKEND_DIR) && $(TSC) --watch
 
 ## backend-clean: Remove backend build artifacts
 backend-clean:
 	@printf "$(BLUE)🧹 Cleaning backend build artifacts...$(NC)\n"
 	@rm -rf $(DIST_DIR)
+	@rm -rf $(BACKEND_DIR)/coverage
 	@printf "$(GREEN)✓ Backend clean complete$(NC)\n"
 
 ## backend-clean-all: Remove backend build artifacts and dependencies
 backend-clean-all: backend-clean
 	@printf "$(BLUE)🧹 Removing backend node_modules...$(NC)\n"
-	@rm -rf $(NODE_MODULES)
+	@rm -rf $(BACKEND_DIR)/$(NODE_MODULES)
 	@printf "$(GREEN)✓ Backend full clean complete$(NC)\n"
-
-## backend-build-exe: Build cross-platform executables
-backend-build-exe: check-backend-deps frontend-build
-	@printf "$(BLUE)🔨 Building executables...$(NC)\n"
-	@chmod +x build-exe-pkg-ts.sh
-	@./build-exe-pkg-ts.sh
-	@printf "$(GREEN)✓ Executables built successfully$(NC)\n"
 
 ## backend-verify: Run linter and type check
 backend-verify: backend-lint
@@ -254,35 +259,35 @@ backend-verify: backend-lint
 ## backend-upgrade: Update backend dependencies
 backend-upgrade:
 	@printf "$(BLUE)📦 Updating backend dependencies...$(NC)\n"
-	@$(NPM) update
+	@cd $(BACKEND_DIR) && $(NPM) update
 	@printf "$(GREEN)✓ Backend dependencies updated$(NC)\n"
 
 ## backend-outdated: Check for outdated backend packages
 backend-outdated:
 	@printf "$(BLUE)📦 Checking for outdated backend packages...$(NC)\n"
-	@$(NPM) outdated || true
+	@cd $(BACKEND_DIR) && $(NPM) outdated || true
 
 ## backend-test: Run backend tests
 backend-test: check-backend-deps
 	@printf "$(BLUE)🧪 Running backend tests...$(NC)\n"
-	@$(NPM) test
+	@cd $(BACKEND_DIR) && $(NPM) test
 	@printf "$(GREEN)✓ Backend tests completed$(NC)\n"
 
 ## backend-test-watch: Run backend tests in watch mode
 backend-test-watch: check-backend-deps
 	@printf "$(BLUE)🧪 Running backend tests in watch mode...$(NC)\n"
-	@$(NPM) run test:watch
+	@cd $(BACKEND_DIR) && $(NPM) run test:watch
 
 ## backend-test-coverage: Run backend tests with coverage report
 backend-test-coverage: check-backend-deps
 	@printf "$(BLUE)🧪 Running backend tests with coverage...$(NC)\n"
-	@$(NPM) run test:coverage
-	@printf "$(GREEN)✓ Coverage report generated in ./coverage$(NC)\n"
+	@cd $(BACKEND_DIR) && $(NPM) run test:coverage
+	@printf "$(GREEN)✓ Coverage report generated in ./backend/coverage$(NC)\n"
 
 ## backend-test-ci: Run backend tests in CI mode
 backend-test-ci: check-backend-deps
 	@printf "$(BLUE)🧪 Running backend tests in CI mode...$(NC)\n"
-	@$(NPM) run test:ci
+	@cd $(BACKEND_DIR) && $(NPM) run test:ci
 
 # =============================================================================
 # Frontend Commands (React + TypeScript + Tailwind)
@@ -321,19 +326,25 @@ frontend-clean:
 # Electron Commands (Desktop App)
 # =============================================================================
 
+## electron-install: Install Electron dependencies
+electron-install: check-node
+	@printf "$(BLUE)📦 Installing Electron dependencies...$(NC)\n"
+	@$(NPM) install
+	@printf "$(GREEN)✓ Electron dependencies installed$(NC)\n"
+
 ## electron-build-ts: Compile Electron TypeScript
-electron-build-ts: check-backend-deps
+electron-build-ts: check-electron-deps
 	@printf "$(BLUE)📝 Compiling Electron TypeScript...$(NC)\n"
 	@$(NPM) run electron:build-ts
 	@printf "$(GREEN)✓ Electron TypeScript compiled$(NC)\n"
 
 ## electron-dev: Build backend + Electron and launch the desktop app
-electron-dev: check-backend-deps build
+electron-dev: check-electron-deps check-backend-deps build
 	@printf "$(BLUE)🖥️  Launching Electron dev app...$(NC)\n"
 	@$(NPM) run electron:dev
 
 ## electron-dist: Build distributable Electron installers (.dmg, .exe, etc.)
-electron-dist: check-backend-deps frontend-build
+electron-dist: check-electron-deps check-backend-deps frontend-build
 	@printf "$(BLUE)🔨 Building Electron distributables...$(NC)\n"
 	@chmod +x build-exe-electron.sh
 	@./build-exe-electron.sh

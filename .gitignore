@@ -20,6 +20,7 @@ lib-cov
 
 # Coverage directory used by tools like istanbul
 coverage
+backend/coverage
 *.lcov
 
 # nyc test coverage
@@ -81,6 +82,7 @@ typings/
 # Nuxt.js build / generate output
 .nuxt
 dist
+backend/dist
 
 # Gatsby files
 .cache/
