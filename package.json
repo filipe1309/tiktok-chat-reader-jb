@@ -11,7 +11,10 @@
     "lint": "eslint backend/**/*.ts",
     "lint:fix": "eslint backend/**/*.ts --fix",
     "clean": "rm -rf dist",
-    "build:exe": "bash build-exe-pkg-ts.sh"
+    "build:exe": "bash build-exe-pkg-ts.sh",
+    "electron:build-ts": "tsc -p electron/tsconfig.json",
+    "electron:dev": "npm run build && npm run electron:build-ts && electron dist-electron/main.js",
+    "electron:dist": "bash build-exe-electron.sh"
   },
   "dependencies": {
     "@types/ws": "^8.18.1",
@@ -26,6 +29,8 @@
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8",
     "eslint": "^8.54.0",
     "nodemon": "^3.0.2",
     "ts-node": "^10.9.2",

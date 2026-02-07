@@ -3,6 +3,7 @@
         backend-lint backend-lint-fix backend-clean backend-clean-all backend-watch \
         backend-build-exe backend-verify backend-upgrade backend-outdated \
         frontend-install frontend-dev frontend-build frontend-lint frontend-clean \
+        electron-dev electron-build-ts electron-dist electron-clean \
         install dev build start lint clean clean-all info
 
 # Variables
@@ -16,8 +17,11 @@ PKG := npx pkg
 # Directories
 BACKEND_DIR := backend
 DIST_DIR := dist
+DIST_ELECTRON_DIR := dist-electron
+RELEASE_DIR := release
 PUBLIC_DIR := public-react
 FRONTEND_DIR := frontend
+ELECTRON_DIR := electron
 NODE_MODULES := node_modules
 
 # Colors for output (using printf-compatible format)
@@ -69,6 +73,12 @@ help:
 	@printf "  $(GREEN)frontend-build$(NC)   Build for production\n"
 	@printf "  $(GREEN)frontend-lint$(NC)    Run ESLint\n"
 	@printf "  $(GREEN)frontend-clean$(NC)   Remove build artifacts\n"
+	@printf "\n"
+	@printf "$(CYAN)▸ Electron Commands (Desktop App)$(NC)\n"
+	@printf "  $(GREEN)electron-dev$(NC)     Build & launch Electron dev app\n"
+	@printf "  $(GREEN)electron-build-ts$(NC) Compile Electron TypeScript\n"
+	@printf "  $(GREEN)electron-dist$(NC)    Build distributable installers\n"
+	@printf "  $(GREEN)electron-clean$(NC)   Remove Electron build artifacts\n"
 	@printf "\n"
 
 # =============================================================================
@@ -126,7 +136,7 @@ lint: backend-lint frontend-lint
 	@printf "$(GREEN)✓ All linting complete$(NC)\n"
 
 ## clean: Clean all build artifacts
-clean: backend-clean frontend-clean
+clean: backend-clean frontend-clean electron-clean
 	@printf "$(GREEN)✓ All clean complete$(NC)\n"
 
 ## clean-all: Clean artifacts and all node_modules
@@ -267,3 +277,32 @@ frontend-clean:
 	@rm -rf $(FRONTEND_DIR)/dist
 	@rm -rf public-react
 	@printf "$(GREEN)✓ Frontend clean complete$(NC)\n"
+
+# =============================================================================
+# Electron Commands (Desktop App)
+# =============================================================================
+
+## electron-build-ts: Compile Electron TypeScript
+electron-build-ts: check-backend-deps
+	@printf "$(BLUE)📝 Compiling Electron TypeScript...$(NC)\n"
+	@$(NPM) run electron:build-ts
+	@printf "$(GREEN)✓ Electron TypeScript compiled$(NC)\n"
+
+## electron-dev: Build backend + Electron and launch the desktop app
+electron-dev: check-backend-deps
+	@printf "$(BLUE)🖥️  Launching Electron dev app...$(NC)\n"
+	@$(NPM) run electron:dev
+
+## electron-dist: Build distributable Electron installers (.dmg, .exe, etc.)
+electron-dist: check-backend-deps frontend-build
+	@printf "$(BLUE)🔨 Building Electron distributables...$(NC)\n"
+	@chmod +x build-exe-electron.sh
+	@./build-exe-electron.sh
+	@printf "$(GREEN)✓ Electron distributables built successfully$(NC)\n"
+
+## electron-clean: Remove Electron build artifacts
+electron-clean:
+	@printf "$(BLUE)🧹 Cleaning Electron build artifacts...$(NC)\n"
+	@rm -rf $(DIST_ELECTRON_DIR)
+	@rm -rf $(RELEASE_DIR)
+	@printf "$(GREEN)✓ Electron clean complete$(NC)\n"
