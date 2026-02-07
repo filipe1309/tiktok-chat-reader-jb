@@ -2,9 +2,10 @@
         backend-install backend-dev backend-dev-watch backend-build backend-start \
         backend-lint backend-lint-fix backend-clean backend-clean-all backend-watch \
         backend-build-exe backend-verify backend-upgrade backend-outdated \
+        backend-test backend-test-watch backend-test-coverage backend-test-ci \
         frontend-install frontend-dev frontend-build frontend-lint frontend-clean \
         electron-dev electron-build-ts electron-dist electron-clean \
-        install dev build start lint clean clean-all info
+        install dev build start lint clean clean-all info test test-watch test-coverage
 
 # Variables
 NODE := node
@@ -50,6 +51,9 @@ help:
 	@printf "  $(GREEN)clean$(NC)            Clean all build artifacts\n"
 	@printf "  $(GREEN)clean-all$(NC)        Clean artifacts + node_modules\n"
 	@printf "  $(GREEN)info$(NC)             Display project information\n"
+	@printf "  $(GREEN)test$(NC)             Run all tests\n"
+	@printf "  $(GREEN)test-watch$(NC)       Run tests in watch mode\n"
+	@printf "  $(GREEN)test-coverage$(NC)    Run tests with coverage report\n"
 	@printf "\n"
 	@printf "$(CYAN)▸ Backend Commands (Node.js + TypeScript)$(NC)\n"
 	@printf "  $(GREEN)backend-install$(NC)  Install backend dependencies\n"
@@ -66,6 +70,9 @@ help:
 	@printf "  $(GREEN)backend-verify$(NC)   Run linter + type check\n"
 	@printf "  $(GREEN)backend-upgrade$(NC)  Update dependencies\n"
 	@printf "  $(GREEN)backend-outdated$(NC) Check outdated packages\n"
+	@printf "  $(GREEN)backend-test$(NC)     Run backend tests\n"
+	@printf "  $(GREEN)backend-test-watch$(NC) Run tests in watch mode\n"
+	@printf "  $(GREEN)backend-test-coverage$(NC) Run tests with coverage\n"
 	@printf "\n"
 	@printf "$(CYAN)▸ Frontend Commands (React + TypeScript + Tailwind)$(NC)\n"
 	@printf "  $(GREEN)frontend-install$(NC) Install frontend dependencies\n"
@@ -134,6 +141,16 @@ start: build backend-start
 ## lint: Run linters on both projects
 lint: backend-lint frontend-lint
 	@printf "$(GREEN)✓ All linting complete$(NC)\n"
+
+## test: Run all tests
+test: backend-test
+	@printf "$(GREEN)✓ All tests complete$(NC)\n"
+
+## test-watch: Run tests in watch mode
+test-watch: backend-test-watch
+
+## test-coverage: Run tests with coverage report
+test-coverage: backend-test-coverage
 
 ## clean: Clean all build artifacts
 clean: backend-clean frontend-clean electron-clean
@@ -244,6 +261,28 @@ backend-upgrade:
 backend-outdated:
 	@printf "$(BLUE)📦 Checking for outdated backend packages...$(NC)\n"
 	@$(NPM) outdated || true
+
+## backend-test: Run backend tests
+backend-test: check-backend-deps
+	@printf "$(BLUE)🧪 Running backend tests...$(NC)\n"
+	@$(NPM) test
+	@printf "$(GREEN)✓ Backend tests completed$(NC)\n"
+
+## backend-test-watch: Run backend tests in watch mode
+backend-test-watch: check-backend-deps
+	@printf "$(BLUE)🧪 Running backend tests in watch mode...$(NC)\n"
+	@$(NPM) run test:watch
+
+## backend-test-coverage: Run backend tests with coverage report
+backend-test-coverage: check-backend-deps
+	@printf "$(BLUE)🧪 Running backend tests with coverage...$(NC)\n"
+	@$(NPM) run test:coverage
+	@printf "$(GREEN)✓ Coverage report generated in ./coverage$(NC)\n"
+
+## backend-test-ci: Run backend tests in CI mode
+backend-test-ci: check-backend-deps
+	@printf "$(BLUE)🧪 Running backend tests in CI mode...$(NC)\n"
+	@$(NPM) run test:ci
 
 # =============================================================================
 # Frontend Commands (React + TypeScript + Tailwind)
