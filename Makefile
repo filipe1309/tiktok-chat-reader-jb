@@ -17,7 +17,7 @@ ESLINT := npx eslint
 # Directories
 BACKEND_DIR := backend
 DIST_DIR := $(BACKEND_DIR)/dist
-DIST_ELECTRON_DIR := dist-electron
+DIST_ELECTRON_DIR := electron/dist-electron
 RELEASE_DIR := release
 PUBLIC_DIR := public-react
 FRONTEND_DIR := frontend

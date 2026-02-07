@@ -2,7 +2,7 @@
   "name": "tiktok-chat-reader",
   "version": "2.0.0",
   "description": "TikTok LIVE Chat Reader - Electron Desktop App",
-  "main": "dist-electron/main.js",
+  "main": "electron/dist-electron/main.js",
   "scripts": {
     "backend:install": "cd backend && npm install",
     "backend:build": "cd backend && npm run build",
@@ -17,7 +17,7 @@
     "install:all": "npm install && npm run backend:install && npm run frontend:install",
     "build:all": "npm run backend:build && npm run frontend:build",
     "electron:build-ts": "tsc -p electron/tsconfig.json",
-    "electron:dev": "npm run backend:build && npm run electron:build-ts && electron dist-electron/main.js",
+    "electron:dev": "npm run backend:build && npm run electron:build-ts && electron electron/dist-electron/main.js",
     "electron:dist": "bash build-exe-electron.sh"
   },
   "dependencies": {

@@ -20,11 +20,12 @@ let mainWindow: BrowserWindow | null = null;
  */
 function startBackendServer(): void {
   // Point static files to the bundled public-react inside the app
-  const staticPath = path.join(__dirname, '../public-react');
+  // __dirname is electron/dist-electron, so we go up 2 levels to reach root
+  const staticPath = path.join(__dirname, '../../public-react');
   process.env.STATIC_FILES_PATH = staticPath;
 
   // Import the compiled backend entry point — this starts the server
-  require('../backend/dist/main');
+  require('../../backend/dist/main');
 }
 
 /**
@@ -37,7 +38,7 @@ function createWindow(): void {
     minWidth: 800,
     minHeight: 600,
     title: 'TikTok LIVE Chat Reader',
-    icon: path.join(__dirname, '../public-react/favicon.ico'),
+    icon: path.join(__dirname, '../../public-react/favicon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -66,7 +67,7 @@ function createWindow(): void {
           x: parseFeature('left'),
           y: parseFeature('top'),
           title: 'TikTok LIVE Chat Reader',
-          icon: path.join(__dirname, '../public-react/favicon.ico'),
+          icon: path.join(__dirname, '../../public-react/favicon.ico'),
           webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,

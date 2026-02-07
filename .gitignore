@@ -107,5 +107,4 @@ backend/dist
 
 # Electron
 release/
-dist-electron/
 electron/dist-electron/

@@ -4,13 +4,13 @@ copyright: Copyright © 2024
 
 directories:
   output: release
-  buildResources: build-resources
+  buildResources: electron/build-resources
 
 # Files to include in the Electron package
 files:
   - backend/dist/**/*
   - backend/node_modules/**/*
-  - dist-electron/**/*
+  - electron/dist-electron/**/*
   - public-react/**/*
   - node_modules/**/*
   - package.json
@@ -18,7 +18,7 @@ files:
 # Electron main entry point (compiled from electron/main.ts)
 # electron-builder reads "main" from package.json, but we override here
 extraMetadata:
-  main: dist-electron/main.js
+  main: electron/dist-electron/main.js
 
 # ─── macOS ────────────────────────────────────────────────────────────
 mac:
@@ -44,8 +44,8 @@ win:
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
-  installerIcon: build-resources/icon.ico
-  uninstallerIcon: build-resources/icon.ico
+  installerIcon: electron/build-resources/icon.ico
+  uninstallerIcon: electron/build-resources/icon.ico
 
 # ─── Linux (optional) ────────────────────────────────────────────────
 linux:
