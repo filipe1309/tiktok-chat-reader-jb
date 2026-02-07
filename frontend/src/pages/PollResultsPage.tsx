@@ -297,7 +297,7 @@ export function PollResultsPage() {
   const getPercentage = useCallback((optionId: number) => {
     const totalVotes = getTotalVotes();
     if (totalVotes === 0) return 0;
-    return (pollState.votes[optionId] / totalVotes) * 100;
+    return ((pollState.votes[optionId] || 0) / totalVotes) * 100;
   }, [pollState.votes, getTotalVotes]);
 
   const totalVotes = getTotalVotes();
