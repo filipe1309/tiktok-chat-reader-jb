@@ -226,7 +226,7 @@ backend-lint-fix: check-backend-deps
 ## backend-watch: Watch for file changes and rebuild
 backend-watch: check-backend-deps
 	@printf "$(BLUE)👀 Watching backend for changes...$(NC)\n"
-	@$(TSC) --watch
+	@$(TSC) -p backend/tsconfig.json --watch
 
 ## backend-clean: Remove backend build artifacts
 backend-clean:

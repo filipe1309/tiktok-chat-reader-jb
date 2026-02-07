@@ -1,32 +1,49 @@
 # TikTok LIVE Chat Reader
 
-A chat reader for TikTok LIVE utilizing TikTok-Live-Connector and Socket.IO. Built with TypeScript using Clean Architecture principles.
+A chat reader for TikTok LIVE utilizing TikTok-Live-Connector and Socket.IO. Built with TypeScript using Clean Architecture principles. Available as a web server or desktop application (Electron).
 
 ## 🏗️ Architecture
 
 This project follows **Clean Architecture** principles with clear separation of concerns:
 
 ```
-backend/
-├── domain/              # Business entities and interfaces (innermost layer)
-│   ├── entities/        # Core business objects
-│   ├── enums/           # Domain enumerations
-│   └── repositories/    # Repository interfaces (contracts)
+├── backend/                 # Node.js + TypeScript server
+│   ├── domain/              # Business entities and interfaces (innermost layer)
+│   │   ├── entities/        # Core business objects
+│   │   ├── enums/           # Domain enumerations
+│   │   └── repositories/    # Repository interfaces (contracts)
+│   │
+│   ├── application/         # Business logic and use cases
+│   │   └── services/        # Application services
+│   │
+│   ├── infrastructure/      # External implementations
+│   │   ├── tiktok/          # TikTok connection wrapper
+│   │   └── rate-limiter/    # Rate limiting implementation
+│   │
+│   ├── presentation/        # UI/API layer
+│   │   ├── handlers/        # Socket.IO event handlers
+│   │   └── server/          # HTTP/WebSocket server
+│   │
+│   ├── config/              # Configuration management
+│   ├── shared/              # Shared utilities and helpers
+│   ├── __tests__/           # Unit and integration tests
+│   ├── jest.config.js       # Jest test configuration
+│   ├── tsconfig.json        # TypeScript configuration
+│   └── main.ts              # Application entry point
 │
-├── application/         # Business logic and use cases
-│   └── services/        # Application services
+├── frontend/                # React + TypeScript + Tailwind CSS
+│   └── src/
+│       ├── components/      # React components
+│       ├── hooks/           # Custom React hooks
+│       └── pages/           # Page components
 │
-├── infrastructure/      # External implementations
-│   ├── tiktok/          # TikTok connection wrapper
-│   └── rate-limiter/    # Rate limiting implementation
+├── electron/                # Electron desktop wrapper
+│   ├── main.ts              # Electron main process
+│   ├── preload.ts           # Preload script (context bridge)
+│   └── tsconfig.json        # Electron TypeScript config
 │
-├── presentation/        # UI/API layer
-│   ├── handlers/        # Socket.IO event handlers
-│   └── server/          # HTTP/WebSocket server
-│
-├── config/              # Configuration management
-├── shared/              # Shared utilities and helpers
-└── main.ts              # Application entry point
+├── public-react/            # Built frontend assets (served by backend)
+└── Makefile                 # Build orchestration
 ```
 
 ### Principles Applied
@@ -68,6 +85,8 @@ npm run dev
 
 ## 📦 Scripts
 
+### Backend
+
 | Script | Description |
 |--------|-------------|
 | `npm run build` | Compile TypeScript to JavaScript |
@@ -77,31 +96,94 @@ npm run dev
 | `npm run lint` | Run ESLint |
 | `npm run lint:fix` | Fix ESLint issues |
 | `npm run clean` | Remove dist folder |
-| `npm run build:exe` | Build standalone executables |
+| `npm test` | Run tests |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:coverage` | Run tests with coverage report |
+
+### Electron (Desktop App)
+
+| Script | Description |
+|--------|-------------|
+| `npm run electron:dev` | Build and launch Electron in dev mode |
+| `npm run electron:build-ts` | Compile Electron TypeScript |
+| `npm run electron:dist` | Build distributable installers |
 
 ## 🛠️ Make Commands
 
 For convenience, you can use `make` commands as shortcuts:
 
+### Combined Commands
+
 | Command | Description |
 |---------|-------------|
 | `make help` | Display all available commands |
-| `make install` | Install project dependencies |
-| `make build` | Compile TypeScript to JavaScript |
-| `make clean` | Remove build artifacts |
-| `make clean-all` | Remove build artifacts and node_modules |
-| `make dev` | Run development server |
-| `make dev-watch` | Run development server with auto-reload |
-| `make start` | Build and start production server |
-| `make lint` | Run ESLint |
-| `make lint-fix` | Run ESLint with auto-fix |
-| `make build-exe` | Build cross-platform executables |
-| `make watch` | Watch for file changes and rebuild |
-| `make verify` | Run linter and type check |
-| `make all` | Clean, install, build, and verify |
-| `make upgrade` | Update dependencies |
-| `make outdated` | Check for outdated packages |
+| `make install` | Install all dependencies |
+| `make build` | Build both backend and frontend |
+| `make dev` | Start both dev servers |
+| `make start` | Build and start production |
+| `make lint` | Run linters on both projects |
+| `make clean` | Clean all build artifacts |
+| `make clean-all` | Clean artifacts + node_modules |
+| `make test` | Run all tests |
+| `make test-watch` | Run tests in watch mode |
+| `make test-coverage` | Run tests with coverage report |
 | `make info` | Display project information |
+
+### Backend Commands
+
+| Command | Description |
+|---------|-------------|
+| `make backend-install` | Install backend dependencies |
+| `make backend-dev` | Start backend dev server (:8081) |
+| `make backend-dev-watch` | Start with auto-reload |
+| `make backend-build` | Compile TypeScript |
+| `make backend-start` | Start production server |
+| `make backend-lint` | Run ESLint |
+| `make backend-lint-fix` | Run ESLint with auto-fix |
+| `make backend-test` | Run backend tests |
+| `make backend-test-coverage` | Run tests with coverage |
+| `make backend-clean` | Remove build artifacts |
+
+### Frontend Commands
+
+| Command | Description |
+|---------|-------------|
+| `make frontend-install` | Install frontend dependencies |
+| `make frontend-dev` | Start frontend dev server (:3000) |
+| `make frontend-build` | Build for production |
+| `make frontend-lint` | Run ESLint |
+| `make frontend-clean` | Remove build artifacts |
+
+### Electron Commands
+
+| Command | Description |
+|---------|-------------|
+| `make electron-dev` | Build & launch Electron dev app |
+| `make electron-build-ts` | Compile Electron TypeScript |
+| `make electron-dist` | Build distributable installers |
+| `make electron-clean` | Remove Electron build artifacts |
+
+## 🧪 Testing
+
+The project uses Jest for testing with ts-jest for TypeScript support.
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:coverage
+```
+
+Test files are located in `backend/__tests__/` with the following structure:
+- `unit/` - Unit tests for individual components
+- `integration/` - Integration tests
+- `mocks/` - Test mocks and fixtures
+
+Coverage reports are generated in `./coverage/`.
 
 ## ⚙️ Configuration
 
@@ -184,22 +266,55 @@ https://github.com/user-attachments/assets/bf57699b-470d-4bba-a128-340cf62bb431
 5. Click "Start Poll"
 6. Viewers type `1`, `2`, or `3` in chat to vote
 
-## 🔧 Building Executables
+## 🔧 Building Desktop Application (Electron)
 
-Build standalone executables for Windows and macOS:
+Build standalone desktop applications for Windows and macOS using Electron:
 
 ```bash
-# Using the new TypeScript build script
-chmod +x build-exe-pkg-ts.sh
-./build-exe-pkg-ts.sh
-
-# Or using the legacy build script (JavaScript)
-./build-exe-pkg.sh
+# Build distributables (recommended)
+npm run electron:dist
+# Or using make
+make electron-dist
+# Or directly with the script
+./build-exe-electron.sh
 ```
 
-Executables will be created in `./dist/`:
-- `tiktok-chat-reader-win.exe` (Windows)
-- `tiktok-chat-reader-macos` (macOS)
+### What Gets Built
+
+The build process creates installers in `./release/`:
+
+| Platform | Format | Description |
+|----------|--------|-------------|
+| **macOS** | `.dmg` | Disk image installer (x64 + arm64) |
+| **macOS** | `.zip` | Portable zip archive |
+| **Windows** | `.exe` (NSIS) | Standard Windows installer |
+| **Windows** | `.exe` (Portable) | Portable executable |
+
+### Development Mode
+
+```bash
+# Launch Electron in development mode
+npm run electron:dev
+# Or
+make electron-dev
+```
+
+This will:
+1. Compile the backend TypeScript
+2. Compile the Electron TypeScript
+3. Launch the desktop app pointing to `localhost:8081`
+
+### Build Configuration
+
+The Electron build is configured via:
+- [electron-builder.yml](electron-builder.yml) - Build targets, icons, and packaging options
+- [electron/tsconfig.json](electron/tsconfig.json) - TypeScript config for Electron code
+
+### Notes
+
+- The desktop app bundles the backend server + frontend assets
+- Configuration can be provided via a `.env` file next to the executable
+- Cross-platform builds are supported (build Windows from macOS, etc.)
 
 ## 📚 API Events
 
